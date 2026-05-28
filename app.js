@@ -3856,22 +3856,45 @@ function broadcastGameState() {
 }
 // ====== برمجة الضغطة المطولة للريأكت (زي الواتس) ======
 let pressTimer;
+let pressedRow = null;
+
 const startPress = (e) => {
   const row = e.target.closest('.message-row');
-  // لو دسنا على زرار التعديل أو المسح مش عايزين القايمة تفتح
-  if (!row || e.target.closest('button')) return;
+  // لو دسنا على زرار أو مدخلات مش عايزين القايمة تفتح
+  if (!row || e.target.closest('button') || e.target.closest('input')) return;
+
+  pressedRow = row;
+  row.classList.add('pressing');
 
   pressTimer = setTimeout(() => {
     // نقفل أي قايمة مفتوحة الأول
     document.querySelectorAll('.message-row.show-reactions').forEach(el => el.classList.remove('show-reactions'));
+    
     // نفتح القايمة بتاعت الرسالة دي
+    row.classList.remove('pressing');
     row.classList.add('show-reactions');
-    // هزة خفيفة للموبايل عشان تحس إنها فتحت
-    if (navigator.vibrate) navigator.vibrate(40);
-  }, 400); // 400 ملي ثانية (وقت الضغطة)
+    
+    // هزة خفيفة للموبايل عشان تحس إنها فتحت (Haptic Feedback)
+    if (navigator.vibrate) navigator.vibrate(50);
+    
+    pressedRow = null;
+  }, 500); // 500 ملي ثانية (وقت الضغطة)
 };
 
-const cancelPress = () => clearTimeout(pressTimer);
+const cancelPress = () => {
+  clearTimeout(pressTimer);
+  if (pressedRow) {
+    pressedRow.classList.remove('pressing');
+    pressedRow = null;
+  }
+};
+
+// منع قائمة الـ Context Menu الافتراضية في الشات (Long Press على الموبايل)
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.closest('.message-row')) {
+    e.preventDefault();
+  }
+});
 
 // لو عملنا كليك في أي مكان فاضي، نقفل قايمة الإيموجي
 document.addEventListener('click', (e) => {
@@ -3885,6 +3908,7 @@ els.appShell.addEventListener('mousedown', startPress);
 els.appShell.addEventListener('touchend', cancelPress);
 els.appShell.addEventListener('mouseup', cancelPress);
 els.appShell.addEventListener('touchmove', cancelPress);
+els.appShell.addEventListener('touchcancel', cancelPress);
 // ====== إعدادات أبعاد خلفية الشات ======
 function openChatSettings() {
   const currentSize = localStorage.getItem('chat-bg-size') || 'cover';

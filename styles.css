@@ -1219,6 +1219,18 @@ input[type="file"]::file-selector-button:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   position: relative;
   animation: messageIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  
+  /* Prevent default mobile text selection and context menu on long press */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+/* Subtle pressing effect for haptic feedback visual */
+.message-row.pressing {
+  transform: scale(0.97);
+  filter: brightness(0.85);
 }
 
 .message-row.me {
