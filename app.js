@@ -330,6 +330,53 @@ function wireEvents() {
   window.addEventListener("beforeunload", () => {
     if (state.user) localPresence(false);
   });
+
+  // Mobile virtual keyboard viewport & scrolling adjustments
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", () => {
+      if (state.view === "chat" && window.innerWidth < 1024) {
+        updateChatViewportHeight();
+      }
+    });
+    window.visualViewport.addEventListener("scroll", () => {
+      if (state.view === "chat" && window.innerWidth < 1024) {
+        if (window.scrollY !== 0) {
+          window.scrollTo(0, 0);
+        }
+        updateChatViewportHeight();
+      }
+    });
+  }
+
+  // Prevent browser window from scrolling up when input is focused/blurred
+  els.appShell.addEventListener("focus", (event) => {
+    if (event.target && event.target.id === "chatText") {
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        updateChatViewportHeight();
+      }, 50);
+    }
+  }, true);
+
+  els.appShell.addEventListener("blur", (event) => {
+    if (event.target && event.target.id === "chatText") {
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        updateChatViewportHeight();
+      }, 50);
+    }
+  }, true);
+
+  // Enforce zero window scroll on mobile chat
+  window.addEventListener("scroll", () => {
+    if (state.view === "chat" && window.innerWidth < 1024) {
+      if (window.scrollY !== 0) {
+        window.scrollTo(0, 0);
+      }
+    }
+  });
 }
 
 function createAmbientVisuals() {
@@ -734,6 +781,11 @@ function renderView(view = state.view) {
 
   // Toggle visibility of presence strip and footer, and update layout class
   const isChat = view === "chat";
+
+  // Toggle scroll lock for body/html when chat is active on mobile
+  document.body.classList.toggle("chat-active-body", isChat && !isDesktop);
+  document.documentElement.classList.toggle("chat-active-body", isChat && !isDesktop);
+
   if (els.presenceStrip) {
     els.presenceStrip.classList.toggle("hidden", isChat);
   }
@@ -745,6 +797,9 @@ function renderView(view = state.view) {
   if (wrapper) {
     wrapper.classList.toggle("chat-layout-active", isChat);
   }
+
+  // Adjust viewport height dynamically for mobile chat
+  updateChatViewportHeight();
 
   const nav = navItems.find((item) => item[0] === view);
   if (els.pageTitle) {
@@ -780,16 +835,28 @@ function renderView(view = state.view) {
 
   updatePlayerVisibility();
   iconRefresh();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  if (isChat && !isDesktop) {
+    window.scrollTo(0, 0);
+  } else {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
 // Add window resize listener to auto-refresh view when switching desktop/mobile
+let lastWidth = window.innerWidth;
 window.addEventListener("resize", () => {
   if (state.user && !els.appShell.classList.contains("hidden")) {
-    clearTimeout(window.resizeTimeout);
-    window.resizeTimeout = setTimeout(() => {
-      renderView(state.view);
-    }, 200);
+    if (window.innerWidth !== lastWidth) {
+      lastWidth = window.innerWidth;
+      clearTimeout(window.resizeTimeout);
+      window.resizeTimeout = setTimeout(() => {
+        renderView(state.view);
+      }, 200);
+    } else if (state.view === "chat" && window.innerWidth < 1024) {
+      // Height changed on mobile chat (e.g. keyboard shown/hidden), refresh height layout
+      updateChatViewportHeight();
+    }
   }
 });
 
@@ -1138,7 +1205,11 @@ function renderChat() {
     <section class="surface chat-shell theme-${savedTheme}" style="padding: 0; display: flex; flex-direction: column; overflow: hidden;">
       <div class="chat-head" style="padding: 16px 20px; background: rgba(10, 0, 15, 0.85); z-index: 10; display: flex; align-items: center; justify-content: space-between;">
         
-        <div style="display:flex; align-items:center; gap: 15px;">
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <!-- Back button for mobile -->
+          <button class="icon-btn mobile-only-back" type="button" data-action="switch-view" data-view="home" style="margin: 0; padding: 8px 8px 8px 4px; color: var(--text); background: transparent; border: none; cursor: pointer; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;" title="الرجوع">
+            <i data-lucide="arrow-right" style="width: 24px; height: 24px;"></i>
+          </button>
           <img src="${escapeAttr(otherUser?.avatar_url || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=150&q=80')}" alt="${escapeAttr(otherUser?.display_name || otherName)}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--pink); object-fit: cover;">
           <div>
             <h3 style="margin: 0; font-size: 1.2rem;">${escapeHTML(otherUser?.display_name || otherName)}</h3>
@@ -1822,8 +1893,12 @@ async function handleSubmit(event) {
   const form = event.target;
   if (form.id === "chatForm") {
     event.preventDefault();
+    const input = document.getElementById("chatText");
     await sendChatMessage(new FormData(form).get("text"));
     form.reset();
+    if (input && window.innerWidth < 1024) {
+      input.focus();
+    }
   }
   if (form.id === "editMessageForm") {
     event.preventDefault();
@@ -2840,7 +2915,7 @@ function updatePlayerVisibility() {
   }
 
   if (wrapper) {
-    if (hasSong && !isMusicView) {
+    if (hasSong && !isMusicView && state.view !== "chat") {
       wrapper.classList.remove("hidden");
     } else {
       wrapper.classList.add("hidden");
@@ -3522,6 +3597,30 @@ function byMemoryDateDesc(a, b) {
 function scrollChatToBottom() {
   const list = $("#messagesList");
   if (list) list.scrollTop = list.scrollHeight;
+}
+
+function updateChatViewportHeight() {
+  const wrapper = document.querySelector(".main-content-wrapper");
+  if (!wrapper) return;
+
+  if (state.view !== "chat" || window.innerWidth >= 1024) {
+    wrapper.style.removeProperty("height");
+    wrapper.style.removeProperty("position");
+    wrapper.style.removeProperty("top");
+    wrapper.style.removeProperty("left");
+    wrapper.style.removeProperty("width");
+    return;
+  }
+
+  if (window.visualViewport) {
+    const vvHeight = window.visualViewport.height;
+    wrapper.style.height = `${vvHeight}px`;
+    wrapper.style.position = "fixed";
+    wrapper.style.top = "0";
+    wrapper.style.left = "0";
+    wrapper.style.width = "100%";
+    scrollChatToBottom();
+  }
 }
 
 function setFormBusy(form, busy) {

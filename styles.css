@@ -845,7 +845,7 @@ input[type="file"]::file-selector-button:hover {
   top: 0;
   z-index: 20;
   margin: 0;
-  padding: var(--space-xs) var(--space-sm);
+  padding: calc(var(--space-xs) + var(--safe-top)) var(--space-sm) var(--space-xs) var(--space-sm);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1191,7 +1191,7 @@ input[type="file"]::file-selector-button:hover {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: var(--space-sm) var(--space-md);
+  padding: calc(var(--space-sm) + var(--safe-top)) var(--space-md) var(--space-sm) var(--space-md);
   background: var(--panel) !important;
   backdrop-filter: blur(24px);
   border-bottom: 1px solid var(--border);
@@ -1405,12 +1405,41 @@ input[type="file"]::file-selector-button:hover {
 
 .audio-message { width: min(100%, 310px); }
 
+/* Body Lock Class when Mobile Chat is open */
+body.chat-active-body,
+html.chat-active-body {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overscroll-behavior: none !important;
+}
+
+.mobile-only-back {
+  display: none;
+}
+
 /* Chat full-screen on mobile */
 .main-content-wrapper.chat-layout-active {
   overflow: hidden;
   height: 100vh;
   height: 100dvh;
   padding-bottom: calc(var(--nav-h) + var(--safe-bottom));
+}
+
+@media (max-width: 1023px) {
+  body.chat-active-body #bottomNav {
+    display: none !important;
+  }
+  .main-content-wrapper.chat-layout-active {
+    padding-bottom: 0 !important;
+  }
+  .mobile-only-back {
+    display: flex !important;
+  }
 }
 
 .main-content-wrapper.chat-layout-active .view-root {
@@ -1668,7 +1697,7 @@ input[type="file"]::file-selector-button:hover {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
-  padding: var(--space-sm);
+  padding: calc(var(--space-sm) + var(--safe-top)) var(--space-sm) var(--space-sm) var(--space-sm);
   border-bottom: 1px solid rgba(255, 139, 205, 0.14);
 }
 
