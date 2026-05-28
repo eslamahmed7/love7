@@ -1440,7 +1440,7 @@ html.chat-active-body {
     top: 0;
     left: 0;
     width: 100% !important;
-    height: calc(100dvh - var(--keyboard-h, 0px)) !important;
+    height: 100dvh !important;
     overflow: hidden !important;
   }
   .mobile-only-back {
@@ -3200,4 +3200,18 @@ html.chat-active-body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   transform: rotate(45deg);
   z-index: -1;
+}
+
+/* ---- WhatsApp Style Keyboard Overlay Refinements ---- */
+.chat-input-wrapper {
+  padding: 0 14px;
+  background: var(--chat-input-bg, rgba(10, 0, 15, 0.85));
+  position: relative;
+  transform: translateY(calc(-1 * var(--keyboard-h, 0px))) !important;
+  transition: transform 0.08s ease-out;
+  z-index: 15;
+}
+
+.messages-list {
+  padding-bottom: calc(20px + var(--keyboard-h, 0px)) !important;
 }

@@ -1257,7 +1257,7 @@ function renderChat() {
         
       </div>
       
-      <div style="padding: 0 14px; background: var(--chat-input-bg, rgba(10, 0, 15, 0.85)); position: relative;">
+      <div class="chat-input-wrapper">
         <!-- Attachment Popup Menu -->
         <div id="attachmentMenu" class="attachment-menu hidden">
           <div class="attachment-menu-inner">
@@ -3842,10 +3842,11 @@ function scrollChatToBottom() {
   if (list) list.scrollTop = list.scrollHeight;
 }
 
+let chatInitialHeight = window.innerHeight;
+
 function updateChatViewportHeight() {
   const wrapper = document.querySelector(".main-content-wrapper");
   if (wrapper) {
-    wrapper.style.removeProperty("height");
     wrapper.style.removeProperty("position");
     wrapper.style.removeProperty("top");
     wrapper.style.removeProperty("left");
@@ -3854,15 +3855,24 @@ function updateChatViewportHeight() {
 
   if (state.view !== "chat" || window.innerWidth >= 1024) {
     document.documentElement.style.removeProperty("--keyboard-h");
+    if (wrapper) wrapper.style.removeProperty("height");
     return;
+  }
+
+  // Update initial height only when keyboard is closed (input is not active)
+  if (document.activeElement?.id !== "chatText") {
+    chatInitialHeight = window.innerHeight;
   }
 
   if (window.visualViewport) {
     const vvHeight = window.visualViewport.height;
-    const layoutHeight = window.innerHeight;
-    const keyboardHeight = Math.max(0, layoutHeight - vvHeight);
+    const keyboardHeight = Math.max(0, chatInitialHeight - vvHeight);
     
     document.documentElement.style.setProperty("--keyboard-h", `${keyboardHeight}px`);
+    
+    if (wrapper) {
+      wrapper.style.height = `${chatInitialHeight}px`;
+    }
     
     // Jump list to bottom instantly
     const list = document.getElementById("messagesList");
