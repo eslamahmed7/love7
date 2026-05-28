@@ -1,22 +1,56 @@
 {
   "name": "محمود ❤️ مريم",
   "short_name": "OurLove",
-  "description": "تطبيق رومانسي خاص بمحمود ومريم",
+  "description": "تطبيق رومانسي خاص بمحمود ومريم: شات، ذكريات، خريطة حب، كبسولات زمنية، مزيكا، وإحصائيات.",
   "start_url": "./index.html",
+  "scope": "./",
+  "id": "/love-app",
   "display": "standalone",
-  "background_color": "#030712",
-  "theme_color": "#030712",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#090214",
+  "theme_color": "#090214",
   "orientation": "portrait",
+  "categories": ["lifestyle", "entertainment"],
+  "lang": "ar",
+  "dir": "rtl",
   "icons": [
     {
-      "src": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=192&q=80",
+      "src": "assets/icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=512&q=80",
+      "src": "assets/icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "الشات",
+      "short_name": "شات",
+      "url": "./index.html#chat",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "الذكريات",
+      "short_name": "ذكريات",
+      "url": "./index.html#memories",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

@@ -335,8 +335,11 @@ function wireEvents() {
 function createAmbientVisuals() {
   const stars = $("#starsLayer");
   const hearts = $("#heartsLayer");
-  const starCount = Math.min(70, Math.max(34, Math.floor(window.innerWidth / 18)));
-  const heartCount = Math.min(18, Math.max(9, Math.floor(window.innerWidth / 70)));
+  const isMobile = window.innerWidth < 768;
+  const isSmallMobile = window.innerWidth < 480;
+  // Reduce particles on mobile for better performance
+  const starCount = isSmallMobile ? 15 : isMobile ? 25 : Math.min(70, Math.max(34, Math.floor(window.innerWidth / 18)));
+  const heartCount = isSmallMobile ? 4 : isMobile ? 6 : Math.min(18, Math.max(9, Math.floor(window.innerWidth / 70)));
 
   for (let i = 0; i < starCount; i += 1) {
     const star = document.createElement("span");
@@ -4481,3 +4484,12 @@ window.addEventListener('load', () => {
     }
   }, 3000);
 });
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => console.log('SW registered:', reg.scope))
+      .catch((err) => console.log('SW registration failed:', err));
+  });
+}
