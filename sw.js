@@ -80,3 +80,48 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
+
+// Push event: show notification in background
+self.addEventListener('push', (event) => {
+  let data = { title: 'محمود ❤️ مريم', body: 'رسالة جديدة' };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: 'محمود ❤️ مريم', body: event.data.text() };
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || './assets/icon-192.png',
+    badge: './assets/icon-192.png',
+    data: data.data || { url: './index.html#chat' }
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// Notification click event: focus or open the app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = new URL(event.notification.data?.url || './index.html#chat', self.location.origin).href;
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windowClients) => {
+        // Check if there is already a window tab open and focus it
+        for (let client of windowClients) {
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // If not, open a new window tab
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
+  );
+});

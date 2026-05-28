@@ -188,6 +188,9 @@ const state = {
   channels: []
 };
 
+let initialMessagesLoaded = false;
+let lastKnownMessageId = null;
+
 const els = {
   loader: $("#loader"),
   authScreen: $("#authScreen"),
@@ -374,6 +377,19 @@ function wireEvents() {
     if (state.view === "chat" && window.innerWidth < 1024) {
       if (window.scrollY !== 0) {
         window.scrollTo(0, 0);
+      }
+    }
+  });
+
+  // Close attachment menu on outside click
+  document.addEventListener("click", (event) => {
+    const menu = document.getElementById("attachmentMenu");
+    const toggleBtn = document.getElementById("attachmentToggleBtn");
+    if (menu && !menu.classList.contains("hidden")) {
+      const clickedMenu = menu.contains(event.target);
+      const clickedToggle = toggleBtn && toggleBtn.contains(event.target);
+      if (!clickedMenu && !clickedToggle) {
+        closeAttachmentMenu();
       }
     }
   });
@@ -568,6 +584,8 @@ async function signOut() {
   state.user = null;
   state.profile = null;
   window.currentLoveUser = null;
+  initialMessagesLoaded = false;
+  lastKnownMessageId = null;
   if (SUPABASE_READY) await sb.auth.signOut();
   else localStorage.removeItem("love-world-session-user-id");
   if (state.countersTimer) clearInterval(state.countersTimer);
@@ -581,6 +599,9 @@ async function refreshAll() {
     loadLocalData();
   }
   await hydrateStorageUrls();
+  if (state.user) {
+    checkNewMessagesForNotifications();
+  }
 }
 
 async function loadSupabaseData() {
@@ -823,6 +844,9 @@ function renderView(view = state.view) {
     if (desktopChat) desktopChat.innerHTML = renderChat();
     requestAnimationFrame(scrollChatToBottom);
     markSeenMessages();
+    if ("Notification" in window && Notification.permission === "default" && localStorage.getItem('chat-notify-browser') !== 'false') {
+      Notification.requestPermission();
+    }
   } else {
     const desktopChat = document.getElementById("desktopChat");
     if (desktopChat) desktopChat.innerHTML = "";
@@ -830,6 +854,9 @@ function renderView(view = state.view) {
     if (view === "chat") {
       markSeenMessages();
       requestAnimationFrame(scrollChatToBottom);
+      if ("Notification" in window && Notification.permission === "default" && localStorage.getItem('chat-notify-browser') !== 'false') {
+        Notification.requestPermission();
+      }
     }
   }
 
@@ -1246,41 +1273,75 @@ function renderChat() {
         
       </div>
       
-      <div style="padding: 0 14px; background: var(--chat-input-bg, rgba(10, 0, 15, 0.85));">
+      <div style="padding: 0 14px; background: var(--chat-input-bg, rgba(10, 0, 15, 0.85)); position: relative;">
+        <!-- Attachment Popup Menu -->
+        <div id="attachmentMenu" class="attachment-menu hidden">
+          <div class="attachment-menu-inner">
+            <button type="button" class="attachment-item" data-action="attachment-photos-videos">
+              <div class="attachment-icon-wrapper photos-videos">
+                <i data-lucide="image"></i>
+              </div>
+              <span>الصور والفيديوهات</span>
+            </button>
+            <button type="button" class="attachment-item" data-action="attachment-camera">
+              <div class="attachment-icon-wrapper camera">
+                <i data-lucide="camera"></i>
+              </div>
+              <span>الكاميرا</span>
+            </button>
+            <button type="button" class="attachment-item" data-action="attachment-documents">
+              <div class="attachment-icon-wrapper documents">
+                <i data-lucide="file-text"></i>
+              </div>
+              <span>الملفات</span>
+            </button>
+            <button type="button" class="attachment-item" data-action="attachment-events">
+              <div class="attachment-icon-wrapper events">
+                <i data-lucide="calendar"></i>
+              </div>
+              <span>الفعاليات</span>
+            </button>
+            <button type="button" class="attachment-item" data-action="attachment-stickers">
+              <div class="attachment-icon-wrapper stickers">
+                <i data-lucide="smile"></i>
+              </div>
+              <span>الاستيكرات</span>
+            </button>
+          </div>
+          <div class="attachment-menu-arrow"></div>
+        </div>
+
         ${typing}
         <form class="chat-input" id="chatForm">
-          <div class="chat-input-pill">
-            <div class="chat-input-left-group">
-              <label class="icon-btn-chat" for="chatAttachment" title="مرفقات وملفات">
-                <i data-lucide="paperclip"></i>
-                <input type="file" id="chatAttachment" multiple hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.txt" />
-              </label>
-              
-              <label class="icon-btn-chat" for="chatCamera" title="كاميرا مباشرة">
-                <i data-lucide="camera"></i>
-                <input type="file" id="chatCamera" hidden accept="image/*" capture="environment" />
-              </label>
-              
-              <label class="icon-btn-chat" for="chatGallery" title="معرض الصور والفيديو">
-                <i data-lucide="image"></i>
-                <input type="file" id="chatGallery" multiple hidden accept="image/*,video/*" />
-              </label>
-            </div>
-            
+          <!-- Toggle Button instead of Label -->
+          <button class="icon-btn-chat" type="button" data-action="toggle-attachment-menu" title="مرفقات" id="attachmentToggleBtn">
+            <i data-lucide="plus"></i>
+          </button>
+
+          <!-- Hidden inputs for attachments -->
+          <input type="file" id="chatPhotosVideos" multiple hidden accept="image/*,video/*" />
+          <input type="file" id="chatDocuments" multiple hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
+          <input type="file" id="chatCamera" hidden accept="image/*" capture="environment" />
+          
+          <div class="chat-input-pill" style="position: relative;">
             <input id="chatText" name="text" autocomplete="off" placeholder="اكتب رسالة..." />
-            
-            <div class="chat-input-right-group">
-              <button class="icon-btn-chat" type="button" data-action="open-stickers" title="ملصقات">
-                <i data-lucide="sticker"></i>
-              </button>
-              
-              <button class="icon-btn-chat" type="button" data-action="voice-record" title="تسجيل صوتي">
-                <i data-lucide="${state.recording ? 'square' : 'mic'}"></i>
-              </button>
-            </div>
+            <!-- Sticker button on the far left -->
+            <button class="icon-btn-chat" type="button" data-action="open-stickers" title="ملصقات" style="position: absolute; left: 8px; right: auto; top: 50%; transform: translateY(-50%);">
+              <i data-lucide="sticker"></i>
+            </button>
           </div>
           
-          <button class="chat-send-btn" type="submit" title="إرسال">
+          <div class="chat-input-right-group" id="chatInputRightGroup">
+            <!-- Camera triggers the hidden input chatCamera -->
+            <label class="icon-btn-chat" for="chatCamera" title="كاميرا">
+              <i data-lucide="camera"></i>
+            </label>
+            <button class="icon-btn-chat voice-record-btn" type="button" data-action="voice-record-hold" id="voiceRecordBtn" title="تسجيل صوتي">
+              <i data-lucide="${state.recording ? 'square' : 'mic'}"></i>
+            </button>
+          </div>
+          
+          <button class="chat-send-btn hidden" id="chatSendBtn" type="submit" title="إرسال" style="display: none;">
             <i data-lucide="send-horizontal"></i>
           </button>
         </form>
@@ -1602,12 +1663,75 @@ function renderMessage(message) {
     contentHtml = `<a href="${escapeAttr(message.media_url || "")}" target="_blank" style="display:inline-flex; align-items:center; gap:8px; background:rgba(0,0,0,0.3); padding:10px 14px; border-radius:8px; text-decoration:none; color:inherit; margin-top:5px;"><i data-lucide="file-text"></i> تحميل الملف</a>`;
   } else if (message.type === "sticker") {
     contentHtml = `<div style="font-size:4.5rem; line-height:1; padding: 10px 0;">${escapeHTML(message.text || "")}</div>`;
+  } else if (message.type === "event") {
+    let eventData = { eventName: "فعالية", description: "", dateTime: "", location: "", responses: {} };
+    try {
+      eventData = JSON.parse(message.text);
+    } catch(e) {}
+    
+    const dt = new Date(eventData.dateTime);
+    const dateStr = dt.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const timeStr = dt.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true });
+    
+    const responseArray = Object.entries(eventData.responses || {});
+    const goingCount = responseArray.filter(([_, status]) => status === 'going').length;
+    const interestedCount = responseArray.filter(([_, status]) => status === 'interested').length;
+    
+    const isPast = dt <= new Date();
+    const cardBg = isPast 
+      ? "background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25);" 
+      : "background: rgba(16, 24, 43, 0.6); border: 1px solid var(--border);";
+    
+    const badgeHtml = isPast 
+      ? `<span class="tag" style="background: rgba(239,68,68,0.2); color: #fca5a5; font-size: 0.75rem; border: 1px solid rgba(239,68,68,0.4); margin-bottom: 5px; display: inline-block;">حان موعدها / بدأت ⏰</span>`
+      : `<span class="tag" style="background: rgba(52,211,153,0.15); color: #a7f3d0; font-size: 0.75rem; border: 1px solid rgba(52,211,153,0.3); margin-bottom: 5px; display: inline-block;">فعالية قادمة 📅</span>`;
+
+    contentHtml = `
+      <div class="whatsapp-event-card" style="padding: 14px; border-radius: 12px; margin-top: 8px; max-width: 320px; text-align: right; box-shadow: 0 4px 15px rgba(0,0,0,0.2); ${cardBg}">
+        ${badgeHtml}
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: var(--blue);">
+            <i data-lucide="calendar-days" style="width: 18px; height: 18px;"></i>
+          </div>
+          <strong style="font-size: 1.1rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(eventData.eventName)}</strong>
+        </div>
+        
+        <div style="font-size: 0.9rem; color: var(--muted); display: flex; flex-direction: column; gap: 5px;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="clock" style="width: 14px; height: 14px; color: var(--gold);"></i>
+            <span>${dateStr} في ${timeStr}</span>
+          </div>
+          ${eventData.location ? `
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--pink);"></i>
+              <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHTML(eventData.location)}</span>
+            </div>
+          ` : ""}
+          ${eventData.description ? `
+            <div style="margin-top: 6px; font-size: 0.85rem; border-right: 2px solid var(--purple); padding-right: 6px; color: #d1d5db; white-space: pre-wrap;">${escapeHTML(eventData.description)}</div>
+          ` : ""}
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 12px;">
+          <button class="primary-btn" type="button" data-action="respond-event" data-id="${message.id}" style="flex: 1; min-height: 36px; padding: 6px 12px; font-size: 0.85rem; border-radius: 8px;">
+            <i data-lucide="reply" style="width: 14px; height: 14px;"></i> الاستجابة للفعالية
+          </button>
+        </div>
+        
+        ${goingCount > 0 || interestedCount > 0 ? `
+          <div style="margin-top: 10px; font-size: 0.85rem; color: var(--gold); border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px; display: flex; gap: 10px;">
+            ${goingCount > 0 ? `<span style="display: inline-flex; align-items: center; gap: 4px; color: var(--green);">✓ ${goingCount} سيحضر</span>` : ""}
+            ${interestedCount > 0 ? `<span style="display: inline-flex; align-items: center; gap: 4px; color: var(--blue);">⭐ ${interestedCount} مهتم</span>` : ""}
+          </div>
+        ` : ""}
+      </div>
+    `;
   } else {
     contentHtml = `<div class="message-text">${escapeHTML(message.text || "")}</div>`;
   }
 
   // لو استيكر بنشيل الخلفية بتاعت الرسالة عشان الاستيكر يبقى طاير في الشات
-  const msgStyle = message.type === 'sticker' ? 'background: transparent !important; border: none !important; box-shadow: none !important;' : `font-size: ${fontSize}; opacity: ${bubbleOpacity};`;
+  const msgStyle = (message.type === 'sticker' || message.type === 'event') ? 'background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important;' : `font-size: ${fontSize}; opacity: ${bubbleOpacity};`;
 
   return `
     <article class="message-row ${side}" data-id="${message.id}">
@@ -1790,6 +1914,65 @@ async function handleActionClick(event) {
   if (action === "open-chat-settings") openChatSettings();
   if (action === "delete-message") await deleteChatMessage(id);
   if (action === "open-stickers") openStickers();
+  if (action === "toggle-attachment-menu") {
+    if (event) event.stopPropagation();
+    toggleAttachmentMenu();
+  }
+  if (action === "attachment-photos-videos") {
+    closeAttachmentMenu();
+    document.getElementById("chatPhotosVideos")?.click();
+  }
+  if (action === "attachment-camera") {
+    closeAttachmentMenu();
+    document.getElementById("chatCamera")?.click();
+  }
+  if (action === "attachment-documents") {
+    closeAttachmentMenu();
+    document.getElementById("chatDocuments")?.click();
+  }
+  if (action === "attachment-events") {
+    closeAttachmentMenu();
+    openModal("إنشاء فعالية جديدة 📅", `
+      <form id="createEventForm" class="grid" style="padding: 10px 0;">
+        <label>
+          <span>اسم الفعالية</span>
+          <input name="event_name" type="text" placeholder="مثلاً: خروجتنا للسينما، عشاء رومانسي..." required />
+        </label>
+        
+        <label>
+          <span>الوصف (اختياري)</span>
+          <textarea name="description" placeholder="اكتب تفاصيل الفعالية هنا..."></textarea>
+        </label>
+        
+        <label>
+          <span>التاريخ والوقت</span>
+          <input name="event_datetime" type="datetime-local" required />
+        </label>
+        
+        <label>
+          <span>الموقع / المكان (اختياري)</span>
+          <input name="location" type="text" placeholder="مثلاً: كافيه كذا، سينما سيتي سنتر..." />
+        </label>
+        
+        <div class="split-actions" style="margin-top: 15px;">
+          <button class="secondary-btn" type="button" data-action="close-modal">إلغاء</button>
+          <button class="primary-btn" type="submit"><i data-lucide="calendar-plus"></i> إنشاء فعالية</button>
+        </div>
+      </form>
+    `);
+  }
+  if (action === "respond-event") {
+    respondEventModal(id);
+  }
+  if (action === "submit-event-response") {
+    const messageId = button.dataset.messageId;
+    const response = button.dataset.response;
+    await submitEventResponse(messageId, response);
+  }
+  if (action === "attachment-stickers") {
+    closeAttachmentMenu();
+    openStickers();
+  }
   if (action === "send-sticker") await sendSticker(button.dataset.sticker);
   if (action === "open-chat-themes") openChatThemes();
   if (action === "set-theme") {
@@ -1896,6 +2079,13 @@ async function handleSubmit(event) {
     const input = document.getElementById("chatText");
     await sendChatMessage(new FormData(form).get("text"));
     form.reset();
+    const rightGroup = document.getElementById("chatInputRightGroup");
+    const sendBtn = document.getElementById("chatSendBtn");
+    if (rightGroup && sendBtn) {
+      rightGroup.style.display = "flex";
+      sendBtn.style.display = "none";
+      sendBtn.classList.add("hidden");
+    }
     if (input && window.innerWidth < 1024) {
       input.focus();
     }
@@ -1936,6 +2126,27 @@ async function handleSubmit(event) {
     event.preventDefault();
     await submitBucket(form);
   }
+  if (form.id === "createEventForm") {
+    event.preventDefault();
+    const fd = new FormData(form);
+    const eventName = fd.get("event_name").trim();
+    const description = fd.get("description").trim();
+    const eventDatetime = fd.get("event_datetime");
+    const location = fd.get("location").trim();
+    
+    if (!eventName || !eventDatetime) return;
+    
+    const eventData = {
+      eventName,
+      description,
+      dateTime: new Date(eventDatetime).toISOString(),
+      location,
+      responses: {}
+    };
+    
+    await sendEventMessage(eventData);
+    closeModal();
+  }
   if (form.id === "chatSettingsForm") {
     event.preventDefault();
     localStorage.setItem('chat-bg-size', form.elements.bg_size.value);
@@ -1944,6 +2155,13 @@ async function handleSubmit(event) {
     localStorage.setItem('chat-name-color', form.elements.name_color.value);
     localStorage.setItem('chat-font-size', form.elements.font_size.value);
     localStorage.setItem('chat-bubble-opacity', form.elements.bubble_opacity.value);
+    localStorage.setItem('chat-notify-sound', form.elements.notify_sound.checked ? 'true' : 'false');
+    localStorage.setItem('chat-notify-browser', form.elements.notify_browser.checked ? 'true' : 'false');
+    if (form.elements.notify_browser.checked) {
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+      }
+    }
     closeModal();
     renderView("chat");
   }
@@ -1975,7 +2193,7 @@ function handleChange(event) {
     return;
   }
 
-  if (target.id === "chatAttachment" || target.id === "chatCamera" || target.id === "chatGallery") {
+  if (target.id === "chatAttachment" || target.id === "chatCamera" || target.id === "chatGallery" || target.id === "chatPhotosVideos" || target.id === "chatDocuments") {
     const files = [...target.files];
     if (files.length > 0) openMediaPreview(files[0]);
     target.value = "";
@@ -2249,6 +2467,19 @@ async function sendChatMessage(text) {
   await refreshAndRender("chat");
 }
 
+async function sendEventMessage(eventData) {
+  await insertRow("messages", {
+    text: JSON.stringify(eventData),
+    type: "event",
+    user_id: state.user.id,
+    sender_name: state.profile.name,
+    is_seen: false,
+    created_at: new Date().toISOString()
+  });
+  sendTypingSignal(false);
+  await refreshAndRender("chat");
+}
+
 async function editChatMessage(id) {
   const msg = state.messages.find((m) => m.id === id);
   if (!msg) return;
@@ -2335,53 +2566,86 @@ function fillChatWithLove() {
   input.focus();
 }
 
-async function toggleVoiceRecording() {
-  if (state.recording) {
-    state.recording.stop();
-    return;
-  }
+async function startVoiceRecording(btn) {
+  if (state.recording) return;
   if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
     alert("المتصفح مش داعم تسجيل الصوت.");
     return;
   }
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  const chunks = [];
-  const recorder = new MediaRecorder(stream);
-  state.recording = recorder;
-  recorder.addEventListener("dataavailable", (event) => {
-    if (event.data.size) chunks.push(event.data);
-  });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const chunks = [];
+    const recorder = new MediaRecorder(stream);
+    state.recording = recorder;
+    state.voiceChunks = chunks;
+    state.voiceStream = stream;
+    recorder.addEventListener("dataavailable", (event) => {
+      if (event.data.size) state.voiceChunks.push(event.data);
+    });
+    recorder.start();
+    
+    const inputPill = document.querySelector('.chat-input-pill');
+    if (inputPill) {
+      inputPill.dataset.originalHtml = inputPill.innerHTML;
+      inputPill.innerHTML = `<div style="display:flex;align-items:center;gap:10px;color:var(--pink);flex:1;padding-left:10px;direction:rtl;"><div class="presence-dot online" style="margin:0;"></div> <span id="voiceTimer" style="font-weight:bold;font-variant-numeric:tabular-nums;">00:00</span> <span style="font-size:0.9rem;opacity:0.8;">جاري التسجيل...</span></div>`;
+    }
+    btn.innerHTML = `<i data-lucide="square"></i>`;
+    iconRefresh();
+    
+    voiceRecordStartTime = Date.now();
+    voiceRecordTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - voiceRecordStartTime) / 1000);
+      const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      const timerEl = document.getElementById("voiceTimer");
+      if (timerEl) timerEl.textContent = `${m}:${s}`;
+    }, 1000);
+  } catch (err) {
+    alert("مشكلة في الوصول للمايك: " + err.message);
+  }
+}
+
+async function stopVoiceRecording() {
+  if (!state.recording) return;
+  clearInterval(voiceRecordTimer);
+  const recorder = state.recording;
+  const chunks = state.voiceChunks;
+  const stream = state.voiceStream;
+  
   recorder.addEventListener("stop", async () => {
     stream.getTracks().forEach((track) => track.stop());
     const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
-    const file = new File([blob], `voice-${Date.now()}.webm`, { type: blob.type });
-    const upload = await uploadAsset(file, "voice-messages", "voice");
-    const message = await insertRow("messages", {
-      text: "",
-      type: "voice",
-      voice_url: upload.url,
-      voice_path: upload.path,
-      voice_bucket: upload.bucket,
-      user_id: state.user.id,
-      sender_name: state.profile.name,
-      is_seen: false,
-      created_at: new Date().toISOString()
-    });
-    await insertRow("voice_messages", {
-      message_id: message.id,
-      user_id: state.user.id,
-      audio_url: upload.url,
-      audio_path: upload.path,
-      bucket: upload.bucket,
-      mime_type: file.type,
-      size: file.size,
-      created_at: new Date().toISOString()
-    });
-    state.recording = null;
-    await refreshAndRender("chat");
+    if (blob.size > 0) {
+      const file = new File([blob], `voice-${Date.now()}.webm`, { type: blob.type });
+      const upload = await uploadAsset(file, "voice-messages", "voice");
+      const message = await insertRow("messages", {
+        text: "",
+        type: "voice",
+        voice_url: upload.url,
+        voice_path: upload.path,
+        voice_bucket: upload.bucket,
+        user_id: state.user.id,
+        sender_name: state.profile.name,
+        is_seen: false,
+        created_at: new Date().toISOString()
+      });
+      await insertRow("voice_messages", {
+        message_id: message.id,
+        user_id: state.user.id,
+        audio_url: upload.url,
+        audio_path: upload.path,
+        bucket: upload.bucket,
+        mime_type: file.type,
+        size: file.size,
+        created_at: new Date().toISOString()
+      });
+      await refreshAndRender("chat");
+    } else {
+      renderView("chat");
+    }
   });
-  recorder.start();
-  renderView("chat");
+  recorder.stop();
+  state.recording = null;
 }
 
 async function toggleReaction(messageId, emoji) {
@@ -3170,6 +3434,8 @@ function localPresence(isOnline) {
 function startCounters() {
   if (state.countersTimer) clearInterval(state.countersTimer);
   state.countersTimer = setInterval(() => {
+    checkUpcomingEventsAlerts();
+
     if (state.view !== "home") return;
 
     const relCounter = $("#relationshipCounter");
@@ -3686,6 +3952,235 @@ async function deleteSong(id) {
     alert("حصلت مشكلة في المسح: " + (error.message || error));
   }
 }
+function playNotificationSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    
+    const playNote = (delayTime, frequency, duration) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(frequency, ctx.currentTime + delayTime);
+      osc.frequency.exponentialRampToValueAtTime(frequency * 1.2, ctx.currentTime + delayTime + duration);
+      
+      gain.gain.setValueAtTime(0, ctx.currentTime + delayTime);
+      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + delayTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delayTime + duration);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start(ctx.currentTime + delayTime);
+      osc.stop(ctx.currentTime + delayTime + duration);
+    };
+    
+    playNote(0, 523.25, 0.15); // C5
+    playNote(0.12, 659.25, 0.25); // E5
+  } catch (e) {
+    console.error("Failed to play notification sound:", e);
+  }
+}
+
+function handleNewMessageNotification(msg) {
+  if (!msg) return;
+
+  const playSoundEnabled = localStorage.getItem('chat-notify-sound') !== 'false';
+  const playBrowserEnabled = localStorage.getItem('chat-notify-browser') !== 'false';
+
+  if (playSoundEnabled) {
+    playNotificationSound();
+  }
+
+  const isTabHidden = document.visibilityState === "hidden";
+  const isNotInChat = state.view !== "chat";
+  
+  if (playBrowserEnabled && (isTabHidden || isNotInChat)) {
+    if (Notification.permission === "granted") {
+      const senderName = displayPerson(msg.sender_name);
+      let bodyText = "";
+      
+      if (msg.type === "text") {
+        bodyText = msg.text;
+      } else if (msg.type === "voice") {
+        bodyText = "🎙️ رسالة صوتية";
+      } else if (msg.type === "photo") {
+        bodyText = "📷 صورة";
+      } else if (msg.type === "video") {
+        bodyText = "🎥 فيديو";
+      } else if (msg.type === "file") {
+        bodyText = "📁 ملف";
+      } else if (msg.type === "sticker") {
+        bodyText = `${msg.text} (ملصق)`;
+      } else {
+        bodyText = "رسالة جديدة";
+      }
+
+      const senderObj = state.profiles.find(p => p.id === msg.user_id);
+      const iconUrl = senderObj?.avatar_url || 'assets/icon-192.png';
+
+      try {
+        const title = normalizePerson(msg.sender_name) === "Mariam" ? "حبيبتي مريم ❤️" : "حبيبي محمود ❤️";
+        const notification = new Notification(title, {
+          body: bodyText,
+          icon: iconUrl,
+          badge: 'assets/icon-192.png',
+          tag: 'chat-message',
+          renotify: true
+        });
+
+        notification.onclick = () => {
+          window.focus();
+          renderView("chat");
+        };
+      } catch (e) {
+        console.error("Error displaying notification:", e);
+      }
+    }
+  }
+}
+
+function checkNewMessagesForNotifications() {
+  if (!state.messages || state.messages.length === 0) {
+    initialMessagesLoaded = true;
+    lastKnownMessageId = null;
+    return;
+  }
+
+  if (!initialMessagesLoaded) {
+    initialMessagesLoaded = true;
+    const lastMsg = state.messages[state.messages.length - 1];
+    if (lastMsg) lastKnownMessageId = lastMsg.id;
+    return;
+  }
+
+  let newMessages = [];
+  if (lastKnownMessageId === null) {
+    newMessages = state.messages;
+  } else {
+    const lastIndex = state.messages.findIndex(m => m.id === lastKnownMessageId);
+    newMessages = lastIndex === -1 ? [] : state.messages.slice(lastIndex + 1);
+  }
+
+  newMessages.forEach(msg => {
+    if (msg.user_id !== state.user.id) {
+      handleNewMessageNotification(msg);
+    }
+  });
+
+  const lastMsg = state.messages[state.messages.length - 1];
+  if (lastMsg) lastKnownMessageId = lastMsg.id;
+}
+
+function respondEventModal(messageId) {
+  const msg = state.messages.find(m => m.id === messageId);
+  if (!msg) return;
+  
+  let eventData = { eventName: "فعالية", responses: {} };
+  try {
+    eventData = JSON.parse(msg.text);
+  } catch(e) {}
+  
+  const currentResponse = eventData.responses[state.user.id] || "";
+  
+  openModal("الرد على الفعالية", `
+    <div style="text-align: center; padding: 15px 0;">
+      <h3 style="color: var(--gold); margin-bottom: 8px;">${escapeHTML(eventData.eventName)}</h3>
+      <p class="muted" style="font-size: 0.9rem; margin-bottom: 20px;">ما هو موقفك من حضور هذه الفعالية؟</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <button class="primary-btn" type="button" data-action="submit-event-response" data-message-id="${messageId}" data-response="going" style="justify-content: space-between; padding: 12px 20px; border-color: ${currentResponse === 'going' ? 'var(--green)' : 'rgba(56, 189, 248, 0.35)'}; background: ${currentResponse === 'going' ? 'rgba(52,211,153,0.15)' : 'rgba(15,23,42,0.35)'}; color: ${currentResponse === 'going' ? 'var(--green)' : '#fff'};">
+          <span>سأحضر 👍</span>
+          ${currentResponse === 'going' ? '✓' : ''}
+        </button>
+        
+        <button class="primary-btn" type="button" data-action="submit-event-response" data-message-id="${messageId}" data-response="interested" style="justify-content: space-between; padding: 12px 20px; border-color: ${currentResponse === 'interested' ? 'var(--blue)' : 'rgba(56, 189, 248, 0.35)'}; background: ${currentResponse === 'interested' ? 'rgba(56,189,248,0.15)' : 'rgba(15,23,42,0.35)'}; color: ${currentResponse === 'interested' ? 'var(--blue)' : '#fff'};">
+          <span>مهتم ⭐</span>
+          ${currentResponse === 'interested' ? '✓' : ''}
+        </button>
+        
+        <button class="danger-btn" type="button" data-action="submit-event-response" data-message-id="${messageId}" data-response="not_going" style="justify-content: space-between; padding: 12px 20px; border-color: ${currentResponse === 'not_going' ? 'var(--danger)' : 'rgba(239,68,68,0.35)'}; background: ${currentResponse === 'not_going' ? 'rgba(239,68,68,0.15)' : 'rgba(15,23,42,0.35)'}; color: ${currentResponse === 'not_going' ? 'var(--danger)' : '#fff'};">
+          <span>لن أحضر 👎</span>
+          ${currentResponse === 'not_going' ? '✓' : ''}
+        </button>
+      </div>
+      
+      <button class="secondary-btn" type="button" data-action="close-modal" style="margin-top: 20px; width: 100%;">إلغاء</button>
+    </div>
+  `);
+}
+
+async function submitEventResponse(messageId, response) {
+  const msg = state.messages.find(m => m.id === messageId);
+  if (!msg) return;
+  
+  let eventData = { eventName: "فعالية", description: "", dateTime: "", location: "", responses: {} };
+  try {
+    eventData = JSON.parse(msg.text);
+  } catch(e) {}
+  
+  eventData.responses = eventData.responses || {};
+  eventData.responses[state.user.id] = response;
+  
+  closeModal();
+  
+  try {
+    await updateRow("messages", messageId, { text: JSON.stringify(eventData) });
+    await refreshAndRender("chat");
+  } catch(err) {
+    alert("حصلت مشكلة في تسجيل الرد: " + err.message);
+  }
+}
+
+function checkUpcomingEventsAlerts() {
+  if (!state.messages) return;
+  
+  const notifiedEvents = JSON.parse(sessionStorage.getItem("notified_events") || "[]");
+  const notifiedSet = new Set(notifiedEvents);
+  let updated = false;
+  
+  state.messages.forEach(msg => {
+    if (msg.type === "event" && !notifiedSet.has(msg.id)) {
+      try {
+        const eventData = JSON.parse(msg.text);
+        const dt = new Date(eventData.dateTime);
+        const now = new Date();
+        
+        // If the event starts in the past (up to 24 hours ago) and was not notified yet
+        if (dt <= now && (now - dt) < 24 * 60 * 60 * 1000) {
+          notifiedSet.add(msg.id);
+          updated = true;
+          
+          // Play sound
+          playNotificationSound();
+          
+          // Show modal
+          openModal("بدأت الفعالية! ⏰", `
+            <div style="text-align: center; padding: 20px 10px;">
+              <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; color: var(--danger); margin: 0 auto 16px;">
+                <i data-lucide="alarm-clock" style="width: 32px; height: 32px; color: var(--danger);"></i>
+              </div>
+              <h3 style="color: var(--gold); margin-bottom: 8px;">حان موعد فعالية:</h3>
+              <h2 style="color: #fff; margin-bottom: 15px;">${escapeHTML(eventData.eventName)}</h2>
+              ${eventData.location ? `<p class="muted" style="margin-bottom: 10px;">📍 المكان: ${escapeHTML(eventData.location)}</p>` : ""}
+              <button class="primary-btn" type="button" data-action="close-modal" style="margin-top: 15px; width: 100%;">تمام</button>
+            </div>
+          `);
+        }
+      } catch(e) {}
+    }
+  });
+  
+  if (updated) {
+    sessionStorage.setItem("notified_events", JSON.stringify([...notifiedSet]));
+  }
+}
+
 function checkCelebrations() {
   if (sessionStorage.getItem("celebrated_today")) return;
   const now = new Date();
@@ -3995,6 +4490,58 @@ document.addEventListener('contextmenu', (e) => {
   }
 });
 
+document.addEventListener('input', (e) => {
+  if (e.target.id === "chatText") {
+    const text = e.target.value.trim();
+    const rightGroup = document.getElementById("chatInputRightGroup");
+    const sendBtn = document.getElementById("chatSendBtn");
+    if (rightGroup && sendBtn) {
+      if (text.length > 0) {
+        rightGroup.style.display = "none";
+        sendBtn.style.display = "flex";
+        sendBtn.classList.remove("hidden");
+      } else {
+        rightGroup.style.display = "flex";
+        sendBtn.style.display = "none";
+        sendBtn.classList.add("hidden");
+      }
+    }
+  }
+});
+
+let voiceRecordTimer = null;
+let voiceRecordStartTime = 0;
+
+document.addEventListener('touchstart', (e) => {
+  const btn = e.target.closest('[data-action="voice-record-hold"]');
+  if (btn) {
+    e.preventDefault(); 
+    startVoiceRecording(btn);
+  }
+}, { passive: false });
+
+document.addEventListener('touchend', (e) => {
+  const btn = e.target.closest('[data-action="voice-record-hold"]');
+  if (btn) {
+    e.preventDefault();
+    stopVoiceRecording();
+  }
+});
+
+document.addEventListener('mousedown', (e) => {
+  const btn = e.target.closest('[data-action="voice-record-hold"]');
+  if (btn && window.innerWidth >= 1024) {
+    startVoiceRecording(btn);
+  }
+});
+
+document.addEventListener('mouseup', (e) => {
+  const btn = e.target.closest('[data-action="voice-record-hold"]');
+  if (btn && window.innerWidth >= 1024) {
+    stopVoiceRecording();
+  }
+});
+
 // لو عملنا كليك في أي مكان فاضي، نقفل قايمة الإيموجي
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.reaction-menu')) {
@@ -4016,6 +4563,8 @@ function openChatSettings() {
   const nameColor = localStorage.getItem('chat-name-color') || 'var(--gold)';
   const fontSize = localStorage.getItem('chat-font-size') || '1rem';
   const bubbleOpacity = localStorage.getItem('chat-bubble-opacity') || '1';
+  const notifySound = localStorage.getItem('chat-notify-sound') !== 'false';
+  const notifyBrowser = localStorage.getItem('chat-notify-browser') !== 'false';
 
   openModal("تعديل الشات ⚙️", `
     <form id="chatSettingsForm" class="grid" style="max-height: 70vh; overflow-y: auto; padding-right: 5px;">
@@ -4078,6 +4627,20 @@ function openChatSettings() {
           <option value="0.6" ${bubbleOpacity === '0.6' ? 'selected' : ''}>شفاف جداً</option>
         </select>
       </label>
+
+      <h4 style="margin: 15px 0 0; color: var(--pink);">التنبيهات والإشعارات</h4>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 5px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+        <label style="display: flex; align-items: center; justify-content: space-between; direction: rtl; cursor: pointer; margin-bottom: 0;">
+          <span style="font-size: 0.95rem; color: var(--text);">تفعيل صوت الإشعارات 🎵</span>
+          <input type="checkbox" name="notify_sound" ${notifySound ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--pink); cursor: pointer;" />
+        </label>
+        
+        <label style="display: flex; align-items: center; justify-content: space-between; direction: rtl; cursor: pointer; margin-top: 8px; margin-bottom: 0;">
+          <span style="font-size: 0.95rem; color: var(--text);">إشعارات المتصفح (البوب اب) 🔔</span>
+          <input type="checkbox" name="notify_browser" ${notifyBrowser ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--pink); cursor: pointer;" />
+        </label>
+      </div>
 
       <div class="split-actions" style="margin-top: 15px;">
         <button class="secondary-btn" type="button" data-action="close-modal">إلغاء</button>
@@ -4615,4 +5178,42 @@ if ('serviceWorker' in navigator) {
       .then((reg) => console.log('SW registered:', reg.scope))
       .catch((err) => console.log('SW registration failed:', err));
   });
+}
+
+function toggleAttachmentMenu() {
+  const menu = document.getElementById("attachmentMenu");
+  if (!menu) return;
+  
+  if (menu.classList.contains("hidden")) {
+    menu.classList.remove("hidden");
+    // Force a reflow to trigger transition
+    menu.offsetHeight;
+    menu.classList.add("open");
+    // Refresh icons inside the menu
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
+  } else {
+    closeAttachmentMenu();
+  }
+}
+
+function closeAttachmentMenu() {
+  const menu = document.getElementById("attachmentMenu");
+  if (!menu || menu.classList.contains("hidden")) return;
+  
+  menu.classList.remove("open");
+  
+  const handleTransitionEnd = () => {
+    menu.classList.add("hidden");
+    menu.removeEventListener("transitionend", handleTransitionEnd);
+  };
+  menu.addEventListener("transitionend", handleTransitionEnd);
+  
+  // Fallback in case transition doesn't fire
+  setTimeout(() => {
+    if (!menu.classList.contains("open")) {
+      menu.classList.add("hidden");
+    }
+  }, 300);
 }
