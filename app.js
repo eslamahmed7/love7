@@ -188,9 +188,6 @@ const state = {
   channels: []
 };
 
-let initialMessagesLoaded = false;
-let lastKnownMessageId = null;
-
 const els = {
   loader: $("#loader"),
   authScreen: $("#authScreen"),
@@ -343,9 +340,9 @@ function wireEvents() {
     });
     window.visualViewport.addEventListener("scroll", () => {
       if (state.view === "chat" && window.innerWidth < 1024) {
-        if (window.scrollY !== 0) {
-          window.scrollTo(0, 0);
-        }
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
         updateChatViewportHeight();
       }
     });
@@ -354,30 +351,28 @@ function wireEvents() {
   // Prevent browser window from scrolling up when input is focused/blurred
   els.appShell.addEventListener("focus", (event) => {
     if (event.target && event.target.id === "chatText") {
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        updateChatViewportHeight();
-      }, 50);
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      updateChatViewportHeight();
     }
   }, true);
 
   els.appShell.addEventListener("blur", (event) => {
     if (event.target && event.target.id === "chatText") {
-      setTimeout(() => {
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        updateChatViewportHeight();
-      }, 50);
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
+      updateChatViewportHeight();
     }
   }, true);
 
   // Enforce zero window scroll on mobile chat
   window.addEventListener("scroll", () => {
     if (state.view === "chat" && window.innerWidth < 1024) {
-      if (window.scrollY !== 0) {
-        window.scrollTo(0, 0);
-      }
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+      document.documentElement.scrollTop = 0;
     }
   });
 
@@ -584,8 +579,6 @@ async function signOut() {
   state.user = null;
   state.profile = null;
   window.currentLoveUser = null;
-  initialMessagesLoaded = false;
-  lastKnownMessageId = null;
   if (SUPABASE_READY) await sb.auth.signOut();
   else localStorage.removeItem("love-world-session-user-id");
   if (state.countersTimer) clearInterval(state.countersTimer);
@@ -599,9 +592,6 @@ async function refreshAll() {
     loadLocalData();
   }
   await hydrateStorageUrls();
-  if (state.user) {
-    checkNewMessagesForNotifications();
-  }
 }
 
 async function loadSupabaseData() {
@@ -844,9 +834,6 @@ function renderView(view = state.view) {
     if (desktopChat) desktopChat.innerHTML = renderChat();
     requestAnimationFrame(scrollChatToBottom);
     markSeenMessages();
-    if ("Notification" in window && Notification.permission === "default" && localStorage.getItem('chat-notify-browser') !== 'false') {
-      Notification.requestPermission();
-    }
   } else {
     const desktopChat = document.getElementById("desktopChat");
     if (desktopChat) desktopChat.innerHTML = "";
@@ -854,9 +841,6 @@ function renderView(view = state.view) {
     if (view === "chat") {
       markSeenMessages();
       requestAnimationFrame(scrollChatToBottom);
-      if ("Notification" in window && Notification.permission === "default" && localStorage.getItem('chat-notify-browser') !== 'false') {
-        Notification.requestPermission();
-      }
     }
   }
 
@@ -2155,13 +2139,6 @@ async function handleSubmit(event) {
     localStorage.setItem('chat-name-color', form.elements.name_color.value);
     localStorage.setItem('chat-font-size', form.elements.font_size.value);
     localStorage.setItem('chat-bubble-opacity', form.elements.bubble_opacity.value);
-    localStorage.setItem('chat-notify-sound', form.elements.notify_sound.checked ? 'true' : 'false');
-    localStorage.setItem('chat-notify-browser', form.elements.notify_browser.checked ? 'true' : 'false');
-    if (form.elements.notify_browser.checked) {
-      if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission();
-      }
-    }
     closeModal();
     renderView("chat");
   }
@@ -3867,25 +3844,31 @@ function scrollChatToBottom() {
 
 function updateChatViewportHeight() {
   const wrapper = document.querySelector(".main-content-wrapper");
-  if (!wrapper) return;
-
-  if (state.view !== "chat" || window.innerWidth >= 1024) {
+  if (wrapper) {
     wrapper.style.removeProperty("height");
     wrapper.style.removeProperty("position");
     wrapper.style.removeProperty("top");
     wrapper.style.removeProperty("left");
     wrapper.style.removeProperty("width");
+  }
+
+  if (state.view !== "chat" || window.innerWidth >= 1024) {
+    document.documentElement.style.removeProperty("--keyboard-h");
     return;
   }
 
   if (window.visualViewport) {
     const vvHeight = window.visualViewport.height;
-    wrapper.style.height = `${vvHeight}px`;
-    wrapper.style.position = "fixed";
-    wrapper.style.top = "0";
-    wrapper.style.left = "0";
-    wrapper.style.width = "100%";
-    scrollChatToBottom();
+    const layoutHeight = window.innerHeight;
+    const keyboardHeight = Math.max(0, layoutHeight - vvHeight);
+    
+    document.documentElement.style.setProperty("--keyboard-h", `${keyboardHeight}px`);
+    
+    // Jump list to bottom instantly
+    const list = document.getElementById("messagesList");
+    if (list) {
+      list.scrollTop = list.scrollHeight;
+    }
   }
 }
 
@@ -3985,96 +3968,6 @@ function playNotificationSound() {
   } catch (e) {
     console.error("Failed to play notification sound:", e);
   }
-}
-
-function handleNewMessageNotification(msg) {
-  if (!msg) return;
-
-  const playSoundEnabled = localStorage.getItem('chat-notify-sound') !== 'false';
-  const playBrowserEnabled = localStorage.getItem('chat-notify-browser') !== 'false';
-
-  if (playSoundEnabled) {
-    playNotificationSound();
-  }
-
-  const isTabHidden = document.visibilityState === "hidden";
-  const isNotInChat = state.view !== "chat";
-  
-  if (playBrowserEnabled && (isTabHidden || isNotInChat)) {
-    if (Notification.permission === "granted") {
-      const senderName = displayPerson(msg.sender_name);
-      let bodyText = "";
-      
-      if (msg.type === "text") {
-        bodyText = msg.text;
-      } else if (msg.type === "voice") {
-        bodyText = "🎙️ رسالة صوتية";
-      } else if (msg.type === "photo") {
-        bodyText = "📷 صورة";
-      } else if (msg.type === "video") {
-        bodyText = "🎥 فيديو";
-      } else if (msg.type === "file") {
-        bodyText = "📁 ملف";
-      } else if (msg.type === "sticker") {
-        bodyText = `${msg.text} (ملصق)`;
-      } else {
-        bodyText = "رسالة جديدة";
-      }
-
-      const senderObj = state.profiles.find(p => p.id === msg.user_id);
-      const iconUrl = senderObj?.avatar_url || 'assets/icon-192.png';
-
-      try {
-        const title = normalizePerson(msg.sender_name) === "Mariam" ? "حبيبتي مريم ❤️" : "حبيبي محمود ❤️";
-        const notification = new Notification(title, {
-          body: bodyText,
-          icon: iconUrl,
-          badge: 'assets/icon-192.png',
-          tag: 'chat-message',
-          renotify: true
-        });
-
-        notification.onclick = () => {
-          window.focus();
-          renderView("chat");
-        };
-      } catch (e) {
-        console.error("Error displaying notification:", e);
-      }
-    }
-  }
-}
-
-function checkNewMessagesForNotifications() {
-  if (!state.messages || state.messages.length === 0) {
-    initialMessagesLoaded = true;
-    lastKnownMessageId = null;
-    return;
-  }
-
-  if (!initialMessagesLoaded) {
-    initialMessagesLoaded = true;
-    const lastMsg = state.messages[state.messages.length - 1];
-    if (lastMsg) lastKnownMessageId = lastMsg.id;
-    return;
-  }
-
-  let newMessages = [];
-  if (lastKnownMessageId === null) {
-    newMessages = state.messages;
-  } else {
-    const lastIndex = state.messages.findIndex(m => m.id === lastKnownMessageId);
-    newMessages = lastIndex === -1 ? [] : state.messages.slice(lastIndex + 1);
-  }
-
-  newMessages.forEach(msg => {
-    if (msg.user_id !== state.user.id) {
-      handleNewMessageNotification(msg);
-    }
-  });
-
-  const lastMsg = state.messages[state.messages.length - 1];
-  if (lastMsg) lastKnownMessageId = lastMsg.id;
 }
 
 function respondEventModal(messageId) {
@@ -4563,9 +4456,6 @@ function openChatSettings() {
   const nameColor = localStorage.getItem('chat-name-color') || 'var(--gold)';
   const fontSize = localStorage.getItem('chat-font-size') || '1rem';
   const bubbleOpacity = localStorage.getItem('chat-bubble-opacity') || '1';
-  const notifySound = localStorage.getItem('chat-notify-sound') !== 'false';
-  const notifyBrowser = localStorage.getItem('chat-notify-browser') !== 'false';
-
   openModal("تعديل الشات ⚙️", `
     <form id="chatSettingsForm" class="grid" style="max-height: 70vh; overflow-y: auto; padding-right: 5px;">
       <h4 style="margin: 0; color: var(--pink);">الخلفية والمظهر</h4>
@@ -4627,20 +4517,6 @@ function openChatSettings() {
           <option value="0.6" ${bubbleOpacity === '0.6' ? 'selected' : ''}>شفاف جداً</option>
         </select>
       </label>
-
-      <h4 style="margin: 15px 0 0; color: var(--pink);">التنبيهات والإشعارات</h4>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 5px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-        <label style="display: flex; align-items: center; justify-content: space-between; direction: rtl; cursor: pointer; margin-bottom: 0;">
-          <span style="font-size: 0.95rem; color: var(--text);">تفعيل صوت الإشعارات 🎵</span>
-          <input type="checkbox" name="notify_sound" ${notifySound ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--pink); cursor: pointer;" />
-        </label>
-        
-        <label style="display: flex; align-items: center; justify-content: space-between; direction: rtl; cursor: pointer; margin-top: 8px; margin-bottom: 0;">
-          <span style="font-size: 0.95rem; color: var(--text);">إشعارات المتصفح (البوب اب) 🔔</span>
-          <input type="checkbox" name="notify_browser" ${notifyBrowser ? 'checked' : ''} style="width: 20px; height: 20px; accent-color: var(--pink); cursor: pointer;" />
-        </label>
-      </div>
 
       <div class="split-actions" style="margin-top: 15px;">
         <button class="secondary-btn" type="button" data-action="close-modal">إلغاء</button>

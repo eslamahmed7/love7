@@ -1436,6 +1436,12 @@ html.chat-active-body {
   }
   .main-content-wrapper.chat-layout-active {
     padding-bottom: 0 !important;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: calc(100dvh - var(--keyboard-h, 0px)) !important;
+    overflow: hidden !important;
   }
   .mobile-only-back {
     display: flex !important;
