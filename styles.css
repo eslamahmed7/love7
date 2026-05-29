@@ -1502,48 +1502,44 @@ body.chat-active-body,
 html.chat-active-body {
   height: 100% !important;
   margin: 0 !important;
+  padding: 0 !important;
   overflow: hidden !important;
   position: fixed !important;
   width: 100% !important;
-  top: 0 !important;
-  left: 0 !important;
-  padding: 0 !important;
-  overscroll-behavior: none !important;
-  touch-action: none;
+  background-color: var(--bg) !important;
 }
 
-.mobile-only-back {
-  display: none;
-}
-
-/* Chat full-screen on mobile */
-.main-content-wrapper.chat-layout-active {
-  overflow: hidden;
-  height: 100vh;
+.main-chat-wrapper {
+  display: flex;
+  flex-direction: column;
   height: 100dvh;
-  padding-bottom: calc(var(--nav-h) + var(--safe-bottom));
+  width: 100%;
 }
 
-@media (max-width: 1023px) {
-  body.chat-active-body #bottomNav {
-    display: none !important;
-  }
-  .main-content-wrapper.chat-layout-active {
-    padding-bottom: 0 !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    width: 100% !important;
-    height: 100dvh !important;
-    display: flex !important;
-    flex-direction: column !important;
-    overflow: hidden !important;
-  }
-  .mobile-only-back {
-    display: flex !important;
-  }
+.chat-header {
+  padding-top: env(safe-area-inset-top, 20px);
+  flex-shrink: 0;
+  z-index: 1000;
+  padding-bottom: 10px; /* Base padding */
+  padding-left: 20px;
+  padding-right: 20px;
+  background: rgba(10, 0, 15, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
+
+.chat-messages-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Cleaned up old layout rules */
 
 .main-content-wrapper.chat-layout-active .view-root {
   flex: 1;
@@ -1573,6 +1569,96 @@ html.chat-active-body {
   padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important;
   flex-shrink: 0;
 }
+
+.main-chat-wrapper .view-root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-input-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  background: var(--surface);
+  position: relative; /* Base position, JS handles 'fixed' and 'bottom' */
+  border-top: 1px solid var(--border);
+  z-index: 10;
+}
+
+.chat-input-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border-radius: 24px;
+  padding: 4px 12px;
+  gap: 8px;
+}
+
+.chat-input-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  padding: 8px 0;
+  font-size: 1rem;
+}
+
+/* Attachment Menu WhatsApp Style */
+.attachment-popup {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 15px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+  z-index: 100;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  transform-origin: bottom left;
+}
+
+.attachment-popup.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+}
+
+.attachment-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.attachment-option-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.attachment-option-icon.gallery { background: linear-gradient(135deg, #bf59cf, #8139be); }
+.attachment-option-icon.camera { background: linear-gradient(135deg, #ff4fa8, #e1276a); }
+.attachment-option-icon.document { background: linear-gradient(135deg, #5158a1, #32357a); }
+.attachment-option-icon.event { background: linear-gradient(135deg, #09a5a5, #0a8181); }
 
 /* Messages list: the ONLY scrollable area */
 .main-content-wrapper.chat-layout-active .messages-list {

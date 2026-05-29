@@ -1632,33 +1632,32 @@ function renderChat() {
   }
 
   return `
-    <section class="surface chat-shell theme-${savedTheme}" style="padding: 0; display: flex; flex-direction: column; overflow: hidden;">
-      <div class="chat-head" style="padding: 16px 20px; background: rgba(10, 0, 15, 0.85); z-index: 10; display: flex; align-items: center; justify-content: space-between;">
+    <section class="main-chat-wrapper surface chat-shell theme-${savedTheme}" style="padding: 0; background-color: var(--bg);">
+      <div class="chat-header">
         
         <div style="display:flex; align-items:center; gap: 10px;">
           <!-- Back button for mobile -->
           <button class="icon-btn mobile-only-back" type="button" data-action="switch-view" data-view="home" style="margin: 0; padding: 8px 8px 8px 4px; color: var(--text); background: transparent; border: none; cursor: pointer; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;" title="الرجوع">
             <i data-lucide="arrow-right" style="width: 24px; height: 24px;"></i>
           </button>
-          <img src="${escapeAttr(otherUser?.avatar_url || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=150&q=80')}" alt="${escapeAttr(otherUser?.display_name || otherName)}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--pink); object-fit: cover;">
+          <img src="${escapeAttr(otherUser?.avatar_url || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=150&q=80')}" alt="${escapeAttr(otherUser?.display_name || otherName)}" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--pink); object-fit: cover;">
           <div>
-            <h3 style="margin: 0; font-size: 1.2rem;">${escapeHTML(otherUser?.display_name || otherName)}</h3>
-            <p class="muted" style="margin: 4px 0 0; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <h3 style="margin: 0; font-size: 1.1rem;">${escapeHTML(otherUser?.display_name || otherName)}</h3>
+            <p class="muted" style="margin: 4px 0 0; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
               <span class="presence-dot ${otherStatus.includes('دلوقتي') ? 'online' : ''}" style="display: inline-block; vertical-align: middle;"></span>
               <span style="color: ${otherStatus.includes('دلوقتي') ? 'var(--green)' : 'inherit'}; font-weight: ${otherStatus.includes('دلوقتي') ? 'bold' : 'normal'};">${otherStatus}</span>
-              ${otherUser?.bio ? ` • <span style="opacity: 0.8; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(otherUser.bio)}</span>` : ''}
             </p>
           </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
-          <button class="secondary-btn" type="button" data-action="open-chat-settings" style="padding: 8px 12px; font-size: 0.9rem; background: rgba(236,72,153,0.15); border-color: var(--pink); color: var(--pink);" title="تعديل الشات">
-            <i data-lucide="settings"></i>
+          <button class="icon-btn" type="button" data-action="open-chat-settings" style="padding: 8px; color: var(--text); background: transparent; border: none;">
+            <i data-lucide="more-vertical"></i>
           </button>
         </div>
       </div>
       
-      <div id="messagesList" class="messages-list" style="flex: 1; background-image: linear-gradient(var(--chat-overlay, rgba(10, 0, 15, 0.75)), var(--chat-overlay, rgba(10, 0, 15, 0.85))), ${savedBg}; background-size: ${escapeAttr(bgSize)}; background-position: ${escapeAttr(bgPosition)}; background-repeat: no-repeat; border-radius: 0; padding: 20px 10px;">
+      <div id="messagesList" class="chat-messages-container messages-list" style="background-image: linear-gradient(var(--chat-overlay, rgba(10, 0, 15, 0.75)), var(--chat-overlay, rgba(10, 0, 15, 0.85))), ${savedBg}; background-size: ${escapeAttr(bgSize)}; background-position: ${escapeAttr(bgPosition)}; background-repeat: no-repeat;">
         ${(() => {
       if (!state.messages.length) return empty("ابدأوا أول رسالة في الشات.");
       let currentDay = "";
@@ -1678,75 +1677,54 @@ function renderChat() {
       
       <div class="chat-input-wrapper">
         <!-- Attachment Popup Menu -->
-        <div id="attachmentMenu" class="attachment-menu hidden">
-          <div class="attachment-menu-inner">
-            <button type="button" class="attachment-item" data-action="attachment-photos-videos">
-              <div class="attachment-icon-wrapper photos-videos">
-                <i data-lucide="image"></i>
-              </div>
-              <span>المعرض</span>
-            </button>
-            <button type="button" class="attachment-item" data-action="attachment-camera">
-              <div class="attachment-icon-wrapper camera">
-                <i data-lucide="camera"></i>
-              </div>
-              <span>الكاميرا</span>
-            </button>
-            <button type="button" class="attachment-item" data-action="attachment-documents">
-              <div class="attachment-icon-wrapper documents">
-                <i data-lucide="file-text"></i>
-              </div>
-              <span>الملفات</span>
-            </button>
-            <button type="button" class="attachment-item" data-action="attachment-events">
-              <div class="attachment-icon-wrapper events">
-                <i data-lucide="calendar"></i>
-              </div>
-              <span>الفعاليات</span>
-            </button>
-            <button type="button" class="attachment-item" data-action="attachment-stickers">
-              <div class="attachment-icon-wrapper stickers">
-                <i data-lucide="smile"></i>
-              </div>
-              <span>الاستيكرات</span>
-            </button>
-          </div>
-          <div class="attachment-menu-arrow"></div>
+        <div id="attachmentMenu" class="attachment-popup hidden">
+          <button type="button" class="attachment-option" data-action="attachment-photos-videos">
+            <div class="attachment-option-icon gallery"><i data-lucide="image"></i></div>
+            <span>صور وفيديوهات</span>
+          </button>
+          <button type="button" class="attachment-option" data-action="attachment-camera">
+            <div class="attachment-option-icon camera"><i data-lucide="camera"></i></div>
+            <span>كاميرا</span>
+          </button>
+          <button type="button" class="attachment-option" data-action="attachment-documents">
+            <div class="attachment-option-icon document"><i data-lucide="file-text"></i></div>
+            <span>ملفات</span>
+          </button>
+          <button type="button" class="attachment-option" data-action="attachment-events">
+            <div class="attachment-option-icon event"><i data-lucide="calendar"></i></div>
+            <span>فعاليات</span>
+          </button>
         </div>
 
         ${typing}
-        <form class="chat-input" id="chatForm">
-          <!-- Toggle Button instead of Label -->
-          <button class="icon-btn-chat" type="button" data-action="toggle-attachment-menu" title="مرفقات" id="attachmentToggleBtn">
+        <form class="chat-input-bar" id="chatForm">
+          <button class="icon-btn-chat" type="button" data-action="toggle-attachment-menu" title="مرفقات" id="attachmentToggleBtn" style="background:transparent; border:none; color:var(--text); padding:0 4px;">
             <i data-lucide="plus"></i>
           </button>
+          
+          <div style="flex: 1; position: relative; display: flex; align-items: center;">
+            <button class="icon-btn-chat" type="button" data-action="open-stickers" title="ملصقات" style="position: absolute; left: 8px; background:transparent; border:none; color:var(--text); padding:0;">
+              <i data-lucide="smile"></i>
+            </button>
+            <input id="chatText" name="text" autocomplete="off" placeholder="اكتب رسالة..." style="padding-left: 40px; background: transparent; border: none; outline: none; width: 100%; color: var(--text);" />
+          </div>
+
+          <div style="display: flex; gap: 4px; align-items: center;" id="chatInputRightGroup">
+            <label class="icon-btn-chat" for="chatCamera" title="كاميرا" style="background:transparent; border:none; color:var(--text); padding:0 4px; cursor:pointer;">
+              <i data-lucide="camera"></i>
+            </label>
+            <button class="icon-btn-chat voice-record-btn" type="button" data-action="voice-record-hold" id="voiceRecordBtn" title="تسجيل صوتي" style="background:transparent; border:none; color:var(--text); padding:0 4px;">
+              <i data-lucide="${state.recording ? 'square' : 'mic'}"></i>
+            </button>
+            <button class="chat-send-btn hidden" id="chatSendBtn" type="submit" title="إرسال" style="display: none; background: var(--gold); color: #000; border-radius: 50%; padding: 6px; border: none; margin-left: 5px;">
+              <i data-lucide="send"></i>
+            </button>
+          </div>
 
           <!-- Hidden inputs for attachments -->
           <input type="file" id="chatPhotosVideos" multiple hidden accept="image/*,video/*" />
           <input type="file" id="chatDocuments" multiple hidden accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
           <input type="file" id="chatCamera" hidden accept="image/*" capture="environment" />
-          
-          <div class="chat-input-pill" style="position: relative;">
-            <input id="chatText" name="text" autocomplete="off" placeholder="اكتب رسالة..." />
-            <!-- Sticker button on the far left -->
-            <button class="icon-btn-chat" type="button" data-action="open-stickers" title="ملصقات" style="position: absolute; left: 8px; right: auto; top: 50%; transform: translateY(-50%);">
-              <i data-lucide="sticker"></i>
-            </button>
-          </div>
-          
-          <div class="chat-input-right-group" id="chatInputRightGroup">
-            <!-- Camera triggers the hidden input chatCamera -->
-            <label class="icon-btn-chat" for="chatCamera" title="كاميرا">
-              <i data-lucide="camera"></i>
-            </label>
-            <button class="icon-btn-chat voice-record-btn" type="button" data-action="voice-record-hold" id="voiceRecordBtn" title="تسجيل صوتي">
-              <i data-lucide="${state.recording ? 'square' : 'mic'}"></i>
-            </button>
-          </div>
-          
-          <button class="chat-send-btn hidden" id="chatSendBtn" type="submit" title="إرسال" style="display: none;">
-            <i data-lucide="send-horizontal"></i>
-          </button>
         </form>
       </div>
     </section>
@@ -2060,21 +2038,15 @@ function renderMessage(message) {
     const audioUrl = escapeAttr(message.voice_url || message.media_url || "");
     const msgId = escapeAttr(message.id);
     contentHtml = `
-      <div class="custom-voice-player" style="flex-direction: column; align-items: stretch; gap: 8px; width: min(100vw - 80px, 280px); padding: 8px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <button class="voice-play-btn" type="button" onclick="window.toggleVoiceMessage('${msgId}')">
-            <i data-lucide="play" id="play-icon-${msgId}"></i>
-            <i data-lucide="pause" id="pause-icon-${msgId}" style="display:none;"></i>
-          </button>
-          
-          <div class="voice-waveform" style="display:flex; align-items:center; gap:3px; height: 30px; flex: 1;">
-            ${Array(15).fill(0).map(() => `<div style="flex:1; background:rgba(255,255,255,0.4); border-radius:4px; height: ${20 + Math.random() * 80}%;"></div>`).join('')}
-          </div>
-        </div>
+      <div class="custom-voice-player" style="display: flex; align-items: center; gap: 12px; width: min(100vw - 80px, 280px); padding: 4px; margin-bottom: 12px;">
+        <button class="voice-play-btn" type="button" onclick="window.toggleVoiceMessage('${msgId}')" style="flex-shrink: 0;">
+          <i data-lucide="play" id="play-icon-${msgId}"></i>
+          <i data-lucide="pause" id="pause-icon-${msgId}" style="display:none;"></i>
+        </button>
         
-        <div class="voice-slider-container">
-          <input type="range" class="voice-slider" id="slider-${msgId}" min="0" max="100" value="0" step="0.1" oninput="window.seekVoiceMessage('${msgId}', this.value)">
-          <div class="voice-time">
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; position: relative; top: -6px;">
+          <input type="range" class="voice-slider" id="slider-${msgId}" min="0" max="100" value="0" step="0.1" oninput="window.seekVoiceMessage('${msgId}', this.value)" style="width: 100%; margin: 0;">
+          <div class="voice-time" style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--muted); position: absolute; top: 18px; width: 100%;">
             <span id="time-current-${msgId}">0:00</span>
             <span id="time-duration-${msgId}">--:--</span>
           </div>
