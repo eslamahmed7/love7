@@ -567,36 +567,46 @@ function wireEvents() {
 
   // Mobile virtual keyboard viewport & scrolling adjustments
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", () => {
+    const handleViewportChange = () => {
       if (state.view === "chat" && window.innerWidth < 1024) {
+        // Force viewport offset to zero — prevents the browser from
+        // scrolling the fixed-position page up to reveal the input
+        if (window.visualViewport.offsetTop > 0) {
+          window.scrollTo(0, 0);
+        }
         updateChatViewportHeight();
       }
-    });
-    window.visualViewport.addEventListener("scroll", () => {
-      if (state.view === "chat" && window.innerWidth < 1024) {
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        updateChatViewportHeight();
-      }
-    });
+    };
+    window.visualViewport.addEventListener("resize", handleViewportChange);
+    window.visualViewport.addEventListener("scroll", handleViewportChange);
   }
 
   // Prevent browser window from scrolling up when input is focused/blurred
-  els.appShell.addEventListener("focus", (event) => {
-    if (event.target && event.target.id === "chatText") {
+  const preventBodyScroll = () => {
+    if (state.view === "chat" && window.innerWidth < 1024) {
       window.scrollTo(0, 0);
       document.body.scrollTop = 0;
       document.documentElement.scrollTop = 0;
+    }
+  };
+
+  els.appShell.addEventListener("focus", (event) => {
+    if (event.target && event.target.id === "chatText") {
+      preventBodyScroll();
       updateChatViewportHeight();
+      // Scroll to bottom after keyboard animation settles
+      setTimeout(() => {
+        preventBodyScroll();
+        scrollChatToBottom();
+      }, 300);
     }
   }, true);
 
   els.appShell.addEventListener("blur", (event) => {
     if (event.target && event.target.id === "chatText") {
-      window.scrollTo(0, 0);
-      document.body.scrollTop = 0;
-      document.documentElement.scrollTop = 0;
+      preventBodyScroll();
+      // Reset keyboard height when blurred
+      document.documentElement.style.setProperty("--keyboard-h", "0px");
       updateChatViewportHeight();
     }
   }, true);
@@ -605,10 +615,8 @@ function wireEvents() {
   window.addEventListener("scroll", () => {
     if (state.view === "chat" && window.innerWidth < 1024) {
       window.scrollTo(0, 0);
-      document.body.scrollTop = 0;
-      document.documentElement.scrollTop = 0;
     }
-  });
+  }, { passive: true });
 
   // Close attachment menu on outside click
   document.addEventListener("click", (event) => {
@@ -1044,6 +1052,11 @@ function renderView(view = state.view) {
   }
 
   // Adjust viewport height dynamically for mobile chat
+  if (!isChat) {
+    // Clean up any inline styles from chat mode
+    if (wrapper) wrapper.style.removeProperty("height");
+    document.documentElement.style.removeProperty("--keyboard-h");
+  }
   updateChatViewportHeight();
 
   const nav = navItems.find((item) => item[0] === view);
@@ -4286,21 +4299,12 @@ function scrollChatToBottom() {
 let chatInitialHeight = window.innerHeight;
 
 function updateChatViewportHeight() {
-  const wrapper = document.querySelector(".main-content-wrapper");
-  if (wrapper) {
-    wrapper.style.removeProperty("position");
-    wrapper.style.removeProperty("top");
-    wrapper.style.removeProperty("left");
-    wrapper.style.removeProperty("width");
-  }
-
   if (state.view !== "chat" || window.innerWidth >= 1024) {
     document.documentElement.style.removeProperty("--keyboard-h");
-    if (wrapper) wrapper.style.removeProperty("height");
     return;
   }
 
-  // Update initial height only when keyboard is closed (input is not active)
+  // Capture the full screen height when the keyboard is NOT open
   if (document.activeElement?.id !== "chatText") {
     chatInitialHeight = window.innerHeight;
   }
@@ -4308,13 +4312,19 @@ function updateChatViewportHeight() {
   if (window.visualViewport) {
     const vvHeight = window.visualViewport.height;
     const keyboardHeight = Math.max(0, chatInitialHeight - vvHeight);
-    
     document.documentElement.style.setProperty("--keyboard-h", `${keyboardHeight}px`);
-    
+
+    // Lock the wrapper height to the initial viewport height
+    // This prevents the browser from resizing the page
+    const wrapper = document.querySelector(".main-content-wrapper");
     if (wrapper) {
       wrapper.style.height = `${chatInitialHeight}px`;
     }
 
+    // Always scroll messages to the bottom when keyboard opens/changes
+    if (keyboardHeight > 50) {
+      requestAnimationFrame(() => scrollChatToBottom());
+    }
   }
 }
 

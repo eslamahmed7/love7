@@ -805,6 +805,7 @@ input[type="file"]::file-selector-button:hover {
   gap: 10px;
   align-items: center;
   padding: var(--space-sm);
+  padding-top: calc(var(--space-sm) + env(safe-area-inset-top, 0px));
 }
 
 .brand-block h2 {
@@ -1410,12 +1411,14 @@ body.chat-active-body,
 html.chat-active-body {
   overflow: hidden !important;
   position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  height: 100dvh !important;
   margin: 0 !important;
   padding: 0 !important;
   overscroll-behavior: none !important;
+  touch-action: none;
 }
 
 .mobile-only-back {
@@ -1437,11 +1440,13 @@ html.chat-active-body {
   .main-content-wrapper.chat-layout-active {
     padding-bottom: 0 !important;
     position: fixed !important;
-    top: 0;
-    left: 0;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
     width: 100% !important;
-    height: 100dvh;
+    height: 100% !important;
     overflow: hidden !important;
+    /* JS will set --chat-height to lock the container */
   }
   .mobile-only-back {
     display: flex !important;
@@ -1456,14 +1461,42 @@ html.chat-active-body {
   max-width: 100%;
   width: 100%;
   padding: 0;
+  overflow: hidden;
 }
 
 .main-content-wrapper.chat-layout-active .chat-shell {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   border-radius: 0;
   border: none;
   box-shadow: none;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Chat head safe-area for notch phones */
+.main-content-wrapper.chat-layout-active .chat-head {
+  padding-top: calc(16px + env(safe-area-inset-top, 0px)) !important;
+  flex-shrink: 0;
+}
+
+/* Messages list: the ONLY scrollable area */
+.main-content-wrapper.chat-layout-active .messages-list {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  min-height: 0;
+}
+
+/* Chat input wrapper: pinned at bottom, pushed up by --keyboard-h */
+.main-content-wrapper.chat-layout-active .chat-input-wrapper {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 20;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--keyboard-h, 0px));
 }
 
 /* =============================================
@@ -3115,14 +3148,16 @@ html.chat-active-body {
 .attachment-menu-inner {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding: 16px;
+  gap: 10px;
+  padding: 12px;
   background: rgba(18, 10, 24, 0.95);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 20px;
+  border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(20px);
-  width: 270px;
+  width: max-content;
+  min-width: 240px;
+  max-width: calc(100vw - 32px);
 }
 
 .attachment-item {
@@ -3144,8 +3179,8 @@ html.chat-active-body {
 }
 
 .attachment-icon-wrapper {
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -3210,8 +3245,6 @@ html.chat-active-body {
   padding: 0 14px;
   background: var(--chat-input-bg, rgba(10, 0, 15, 0.85));
   position: relative;
-  transform: translateY(calc(-1 * var(--keyboard-h, 0px))) !important;
-  transition: transform 0.08s ease-out;
   z-index: 15;
 }
 
@@ -3284,23 +3317,23 @@ html.chat-active-body {
 @media (max-width: 768px) {
   .guess-categories-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 10px !important;
+    gap: 8px !important;
   }
   .guess-categories-grid .category-card {
-    min-height: 125px;
-    padding: 12px 6px;
-    border-radius: 16px;
+    min-height: 110px;
+    padding: 10px 4px;
+    border-radius: 12px;
   }
   .guess-categories-grid .category-card .cat-emoji {
-    font-size: 1.7rem;
-    margin-bottom: 3px;
+    font-size: 1.5rem;
+    margin-bottom: 2px;
   }
   .guess-categories-grid .category-card h4 {
-    font-size: 0.8rem;
-    margin: 3px 0;
+    font-size: 0.72rem;
+    margin: 2px 0;
   }
   .guess-categories-grid .category-card span.cat-desc {
-    font-size: 0.62rem;
-    line-height: 1.25;
+    font-size: 0.55rem;
+    line-height: 1.2;
   }
 }
