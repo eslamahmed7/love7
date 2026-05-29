@@ -565,20 +565,33 @@ function wireEvents() {
     if (state.user) localPresence(false);
   });
 
-  // Mobile virtual keyboard viewport & scrolling adjustments
+  // Mobile virtual keyboard viewport (WhatsApp Solution)
   if (window.visualViewport) {
-    const handleViewportChange = () => {
+    window.visualViewport.addEventListener('resize', () => {
       if (state.view === "chat" && window.innerWidth < 1024) {
-        updateChatViewportHeight();
-        scrollChatToBottom();
+        const viewport = window.visualViewport;
+        const container = document.querySelector('.chat-input-wrapper');
+        if (!container) return;
+        
+        // Calculate the height taken by the keyboard
+        const keyboardHeight = window.innerHeight - viewport.height;
+        
+        if (keyboardHeight > 100) { // Keyboard is open
+            container.style.position = 'fixed';
+            container.style.bottom = `${keyboardHeight}px`;
+            container.style.left = '0';
+            container.style.width = '100%';
+            scrollChatToBottom();
+        } else { // Keyboard is closed
+            container.style.position = 'relative';
+            container.style.bottom = '0px';
+        }
       }
-    };
-    window.visualViewport.addEventListener("resize", handleViewportChange);
+    });
   }
 
   els.appShell.addEventListener("focus", (event) => {
     if (event.target && event.target.id === "chatText") {
-      updateChatViewportHeight();
       setTimeout(scrollChatToBottom, 150);
     }
   }, true);
@@ -586,7 +599,11 @@ function wireEvents() {
   els.appShell.addEventListener("blur", (event) => {
     if (event.target && event.target.id === "chatText") {
       document.documentElement.style.setProperty("--keyboard-h", "0px");
-      updateChatViewportHeight();
+      const container = document.querySelector('.chat-input-wrapper');
+      if (container) {
+          container.style.position = 'relative';
+          container.style.bottom = '0px';
+      }
     }
   }, true);
 
@@ -2040,7 +2057,31 @@ function renderMessage(message) {
   // هنا بنفهم نوع الرسالة ونعرضها بالشكل المناسب
   let contentHtml = "";
   if (message.type === "voice") {
-    contentHtml = `<audio class="audio-message" src="${escapeAttr(message.voice_url || message.media_url || "")}" controls></audio>`;
+    const audioUrl = escapeAttr(message.voice_url || message.media_url || "");
+    const msgId = escapeAttr(message.id);
+    contentHtml = `
+      <div class="custom-voice-player" style="flex-direction: column; align-items: stretch; gap: 8px; width: min(100vw - 80px, 280px); padding: 8px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button class="voice-play-btn" type="button" onclick="window.toggleVoiceMessage('${msgId}')">
+            <i data-lucide="play" id="play-icon-${msgId}"></i>
+            <i data-lucide="pause" id="pause-icon-${msgId}" style="display:none;"></i>
+          </button>
+          
+          <div class="voice-waveform" style="display:flex; align-items:center; gap:3px; height: 30px; flex: 1;">
+            ${Array(15).fill(0).map(() => `<div style="flex:1; background:rgba(255,255,255,0.4); border-radius:4px; height: ${20 + Math.random() * 80}%;"></div>`).join('')}
+          </div>
+        </div>
+        
+        <div class="voice-slider-container">
+          <input type="range" class="voice-slider" id="slider-${msgId}" min="0" max="100" value="0" step="0.1" oninput="window.seekVoiceMessage('${msgId}', this.value)">
+          <div class="voice-time">
+            <span id="time-current-${msgId}">0:00</span>
+            <span id="time-duration-${msgId}">--:--</span>
+          </div>
+        </div>
+        <audio id="audio-${msgId}" class="audio-message" src="${audioUrl}" preload="metadata" onloadedmetadata="window.initVoiceMessage('${msgId}')" ontimeupdate="window.updateVoiceMessage('${msgId}')" onended="window.endVoiceMessage('${msgId}')"></audio>
+      </div>
+    `;
   } else if (message.type === "photo") {
     contentHtml = `<img src="${escapeAttr(message.media_url || "")}" style="max-width:260px; border-radius:8px; margin-top:5px; border: 2px solid var(--border);" loading="lazy" />`;
   } else if (message.type === "video") {
@@ -4192,9 +4233,10 @@ function haversine(lat1, lon1, lat2, lon2) {
 }
 
 function fileType(file) {
+  const ext = extensionFromFile(file).toLowerCase();
+  if (['mp3', 'm4a', 'wav', 'ogg', 'aac', 'webm'].includes(ext) || file.type.startsWith("audio/")) return "voice";
   if (file.type.startsWith("image/")) return "photo";
   if (file.type.startsWith("video/")) return "video";
-  if (file.type.startsWith("audio/")) return "voice";
   return "file";
 }
 
@@ -5625,3 +5667,113 @@ function closeAttachmentMenu() {
     }
   }, 300);
 }
+
+// ==========================================
+// Custom Voice Message Player Logic
+// ==========================================
+
+window.activeChatAudioId = null;
+
+window.formatVoiceTime = function(seconds) {
+  if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s < 10 ? '0' : ''}${s}`;
+};
+
+window.initVoiceMessage = function(msgId) {
+  const audio = document.getElementById(`audio-${msgId}`);
+  const durationSpan = document.getElementById(`time-duration-${msgId}`);
+  if (audio && durationSpan) {
+    if (audio.duration && audio.duration !== Infinity) {
+      durationSpan.textContent = window.formatVoiceTime(audio.duration);
+    }
+  }
+};
+
+window.toggleVoiceMessage = function(msgId) {
+  const audio = document.getElementById(`audio-${msgId}`);
+  const playIcon = document.getElementById(`play-icon-${msgId}`);
+  const pauseIcon = document.getElementById(`pause-icon-${msgId}`);
+  
+  if (!audio) return;
+
+  if (audio.paused) {
+    // Pause currently playing audio if any
+    if (window.activeChatAudioId && window.activeChatAudioId !== msgId) {
+      const activeAudio = document.getElementById(`audio-${window.activeChatAudioId}`);
+      if (activeAudio) {
+        activeAudio.pause();
+        const activePlay = document.getElementById(`play-icon-${window.activeChatAudioId}`);
+        const activePause = document.getElementById(`pause-icon-${window.activeChatAudioId}`);
+        if (activePlay) activePlay.style.display = "block";
+        if (activePause) activePause.style.display = "none";
+      }
+    }
+    
+    // Play this one
+    audio.play().then(() => {
+      window.activeChatAudioId = msgId;
+      if (playIcon) playIcon.style.display = "none";
+      if (pauseIcon) pauseIcon.style.display = "block";
+    }).catch(console.error);
+    
+  } else {
+    // Pause this one
+    audio.pause();
+    if (playIcon) playIcon.style.display = "block";
+    if (pauseIcon) pauseIcon.style.display = "none";
+  }
+};
+
+window.updateVoiceMessage = function(msgId) {
+  const audio = document.getElementById(`audio-${msgId}`);
+  const slider = document.getElementById(`slider-${msgId}`);
+  const currentTimeSpan = document.getElementById(`time-current-${msgId}`);
+  const durationSpan = document.getElementById(`time-duration-${msgId}`);
+  
+  if (!audio) return;
+
+  // Sometimes duration isn't available until play
+  if (audio.duration && audio.duration !== Infinity) {
+    if (durationSpan && durationSpan.textContent === "--:--") {
+      durationSpan.textContent = window.formatVoiceTime(audio.duration);
+    }
+    if (slider) {
+      slider.value = (audio.currentTime / audio.duration) * 100;
+    }
+  }
+  
+  if (currentTimeSpan) {
+    currentTimeSpan.textContent = window.formatVoiceTime(audio.currentTime);
+  }
+};
+
+window.seekVoiceMessage = function(msgId, value) {
+  const audio = document.getElementById(`audio-${msgId}`);
+  if (audio && audio.duration && audio.duration !== Infinity) {
+    const newTime = (value / 100) * audio.duration;
+    audio.currentTime = newTime;
+    
+    const currentTimeSpan = document.getElementById(`time-current-${msgId}`);
+    if (currentTimeSpan) {
+      currentTimeSpan.textContent = window.formatVoiceTime(newTime);
+    }
+  }
+};
+
+window.endVoiceMessage = function(msgId) {
+  const playIcon = document.getElementById(`play-icon-${msgId}`);
+  const pauseIcon = document.getElementById(`pause-icon-${msgId}`);
+  const slider = document.getElementById(`slider-${msgId}`);
+  const currentTimeSpan = document.getElementById(`time-current-${msgId}`);
+  
+  if (playIcon) playIcon.style.display = "block";
+  if (pauseIcon) pauseIcon.style.display = "none";
+  if (slider) slider.value = 0;
+  if (currentTimeSpan) currentTimeSpan.textContent = "0:00";
+  
+  if (window.activeChatAudioId === msgId) {
+    window.activeChatAudioId = null;
+  }
+};
