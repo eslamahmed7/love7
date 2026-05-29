@@ -569,54 +569,26 @@ function wireEvents() {
   if (window.visualViewport) {
     const handleViewportChange = () => {
       if (state.view === "chat" && window.innerWidth < 1024) {
-        // Force viewport offset to zero — prevents the browser from
-        // scrolling the fixed-position page up to reveal the input
-        if (window.visualViewport.offsetTop > 0) {
-          window.scrollTo(0, 0);
-        }
         updateChatViewportHeight();
+        scrollChatToBottom();
       }
     };
     window.visualViewport.addEventListener("resize", handleViewportChange);
-    window.visualViewport.addEventListener("scroll", handleViewportChange);
   }
-
-  // Prevent browser window from scrolling up when input is focused/blurred
-  const preventBodyScroll = () => {
-    if (state.view === "chat" && window.innerWidth < 1024) {
-      window.scrollTo(0, 0);
-      document.body.scrollTop = 0;
-      document.documentElement.scrollTop = 0;
-    }
-  };
 
   els.appShell.addEventListener("focus", (event) => {
     if (event.target && event.target.id === "chatText") {
-      preventBodyScroll();
       updateChatViewportHeight();
-      // Scroll to bottom after keyboard animation settles
-      setTimeout(() => {
-        preventBodyScroll();
-        scrollChatToBottom();
-      }, 300);
+      setTimeout(scrollChatToBottom, 150);
     }
   }, true);
 
   els.appShell.addEventListener("blur", (event) => {
     if (event.target && event.target.id === "chatText") {
-      preventBodyScroll();
-      // Reset keyboard height when blurred
       document.documentElement.style.setProperty("--keyboard-h", "0px");
       updateChatViewportHeight();
     }
   }, true);
-
-  // Enforce zero window scroll on mobile chat
-  window.addEventListener("scroll", () => {
-    if (state.view === "chat" && window.innerWidth < 1024) {
-      window.scrollTo(0, 0);
-    }
-  }, { passive: true });
 
   // Close attachment menu on outside click
   document.addEventListener("click", (event) => {
@@ -738,11 +710,7 @@ async function enterApp(authUser, isManual = false) {
   if (state.refreshTimer) clearInterval(state.refreshTimer);
   state.refreshTimer = setInterval(async () => {
     if (state.view === "chat") {
-      const oldLen = state.messages.length;
-      await refreshAll();
-      if (state.messages.length > oldLen) {
-        renderView("chat");
-      }
+      await refreshAndRender("chat");
     }
   }, 2000);
   checkCelebrations(); // <-- السطر اللي هيشغل المفاجأة
@@ -3714,8 +3682,36 @@ async function deleteRowAndRefresh(table, id, view) {
 }
 
 async function refreshAndRender(view = state.view) {
+  const oldMessagesLen = state.messages.length;
   await refreshAll();
   renderChrome();
+  
+  // For chat, if only new messages are added, append them directly to DOM to avoid scroll jump
+  if (view === "chat" && state.messages.length > oldMessagesLen) {
+    const list = document.getElementById("messagesList");
+    if (list) {
+      const newMessages = state.messages.slice(oldMessagesLen);
+      let currentDay = oldMessagesLen > 0 ? new Date(state.messages[oldMessagesLen - 1].created_at).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : "";
+      
+      let htmlToAppend = "";
+      for (const msg of newMessages) {
+        const d = new Date(msg.created_at);
+        const dayStr = d.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        if (dayStr !== currentDay) {
+          currentDay = dayStr;
+          htmlToAppend += `<div class="date-divider" style="text-align:center; margin: 16px 0; font-size: 0.8rem; color: var(--muted);"><span style="background: rgba(255,255,255,0.05); padding: 4px 12px; border-radius: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">${dayStr}</span></div>`;
+        }
+        htmlToAppend += renderMessage(msg);
+      }
+      
+      if (oldMessagesLen === 0) list.innerHTML = "";
+      list.insertAdjacentHTML("beforeend", htmlToAppend);
+      scrollChatToBottom();
+      markSeenMessages();
+      return; // Skip full render
+    }
+  }
+  
   renderView(view);
 }
 
