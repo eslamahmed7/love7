@@ -3212,6 +3212,17 @@ html.chat-active-body {
   z-index: 15;
 }
 
-.messages-list {
-  padding-bottom: calc(20px + var(--keyboard-h, 0px)) !important;
+/* =============================================
+   33. GUESS THE WORD GAME STYLING
+   ============================================= */
+@media (max-width: 768px) {
+  .guess-word-grid {
+    grid-template-columns: 1fr !important;
+    gap: 15px !important;
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

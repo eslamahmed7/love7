@@ -130,7 +130,240 @@ const ROLEPLAY_QUESTIONS = [
   "لو احنا الاتنين حيوانات أليفة، تفتكر أنا هبقى إيه وإنت إيه؟"
 ];
 
+const WORD_GUESS_POOL = [
+  // حيوانات وطيور
+  { word: "أسد", category: "حيوانات وطيور", emoji: "🦁" },
+  { word: "نمر", category: "حيوانات وطيور", emoji: "🐯" },
+  { word: "فهد", category: "حيوانات وطيور", emoji: "🐆" },
+  { word: "قرد", category: "حيوانات وطيور", emoji: "🐒" },
+  { word: "فيل", category: "حيوانات وطيور", emoji: "🐘" },
+  { word: "زرافة", category: "حيوانات وطيور", emoji: "🦒" },
+  { word: "دب", category: "حيوانات وطيور", emoji: "🐻" },
+  { word: "باندا", category: "حيوانات وطيور", emoji: "🐼" },
+  { word: "أرنب", category: "حيوانات وطيور", emoji: "🐰" },
+  { word: "ثعلب", category: "حيوانات وطيور", emoji: "🦊" },
+  { word: "ذئب", category: "حيوانات وطيور", emoji: "🐺" },
+  { word: "سنجاب", category: "حيوانات وطيور", emoji: "🐿️" },
+  { word: "ماعز", category: "حيوانات وطيور", emoji: "🐐" },
+  { word: "خروف", category: "حيوانات وطيور", emoji: "🐑" },
+  { word: "حصان", category: "حيوانات وطيور", emoji: "🐎" },
+  { word: "حمار وحشي", category: "حيوانات وطيور", emoji: "🦓" },
+  { word: "بقرة", category: "حيوانات وطيور", emoji: "🐄" },
+  { word: "جمل", category: "حيوانات وطيور", emoji: "🐪" },
+  { word: "وحيد القرن", category: "حيوانات وطيور", emoji: "🦏" },
+  { word: "فرس النهر", category: "حيوانات وطيور", emoji: "🦛" },
+  { word: "قطة", category: "حيوانات وطيور", emoji: "🐱" },
+  { word: "كلب", category: "حيوانات وطيور", emoji: "🐶" },
+  { word: "عصفور", category: "حيوانات وطيور", emoji: "🐦" },
+  { word: "نسر", category: "حيوانات وطيور", emoji: "🦅" },
+  { word: "بومة", category: "حيوانات وطيور", emoji: "🦉" },
+  { word: "ببغاء", category: "حيوانات وطيور", emoji: "🦜" },
+  { word: "بطة", category: "حيوانات وطيور", emoji: "🦆" },
+  { word: "دجاجة", category: "حيوانات وطيور", emoji: "🐔" },
+  { word: "بطريق", category: "حيوانات وطيور", emoji: "🐧" },
+  { word: "حمامة", category: "حيوانات وطيور", emoji: "🕊️" },
+  { word: "تمساح", category: "حيوانات وطيور", emoji: "🐊" },
+  { word: "ثعبان", category: "حيوانات وطيور", emoji: "🐍" },
+  { word: "سلحفاة", category: "حيوانات وطيور", emoji: "🐢" },
+  { word: "ضفدع", category: "حيوانات وطيور", emoji: "🐸" },
+  { word: "سمكة", category: "حيوانات وطيور", emoji: "🐟" },
+  { word: "قرش", category: "حيوانات وطيور", emoji: "🦈" },
+  { word: "دلفين", category: "حيوانات وطيور", emoji: "🐬" },
+  { word: "أخطبوط", category: "حيوانات وطيور", emoji: "🐙" },
 
+  // طعام وحلويات
+  { word: "بيتزا", category: "طعام وحلويات", emoji: "🍕" },
+  { word: "برجر", category: "طعام وحلويات", emoji: "🍔" },
+  { word: "شاورما", category: "طعام وحلويات", emoji: "🌯" },
+  { word: "كباب", category: "طعام وحلويات", emoji: "🍢" },
+  { word: "بطاطس مقلية", category: "طعام وحلويات", emoji: "🍟" },
+  { word: "دجاج مقلي", category: "طعام وحلويات", emoji: "🍗" },
+  { word: "مكرونة", category: "طعام وحلويات", emoji: "🍝" },
+  { word: "سوشي", category: "طعام وحلويات", emoji: "🍣" },
+  { word: "كوشري", category: "طعام وحلويات", emoji: "🍲" },
+  { word: "طعمية", category: "طعام وحلويات", emoji: "🧆" },
+  { word: "ورق عنب", category: "طعام وحلويات", emoji: "🍇" },
+  { word: "حواوشي", category: "طعام وحلويات", emoji: "🥩" },
+  { word: "شوكولاتة", category: "طعام وحلويات", emoji: "🍫" },
+  { word: "كيكة", category: "طعام وحلويات", emoji: "🍰" },
+  { word: "دوناتس", category: "طعام وحلويات", emoji: "🍩" },
+  { word: "آيس كريم", category: "طعام وحلويات", emoji: "🍦" },
+  { word: "بوب كورن", category: "طعام وحلويات", emoji: "🍿" },
+  { word: "كرواسون", category: "طعام وحلويات", emoji: "🥐" },
+  { word: "عسل", category: "طعام وحلويات", emoji: "🍯" },
+  { word: "جبنة", category: "طعام وحلويات", emoji: "🧀" },
+  { word: "بيض", category: "طعام وحلويات", emoji: "🥚" },
+  { word: "خبز", category: "طعام وحلويات", emoji: "🍞" },
+  { word: "بسكويت", category: "طعام وحلويات", emoji: "🍪" },
+  { word: "فطيرة", category: "طعام وحلويات", emoji: "🥧" },
+  { word: "فلافل", category: "طعام وحلويات", emoji: "🧆" },
+  { word: "نودلز", category: "طعام وحلويات", emoji: "🍜" },
+
+  // فواكه وخضروات
+  { word: "تفاحة", category: "فواكه وخضروات", emoji: "🍎" },
+  { word: "موزة", category: "فواكه وخضروات", emoji: "🍌" },
+  { word: "فراولة", category: "فواكه وخضروات", emoji: "🍓" },
+  { word: "مانجو", category: "فواكه وخضروات", emoji: "🥭" },
+  { word: "بطيخ", category: "فواكه وخضروات", emoji: "🍉" },
+  { word: "برتقال", category: "فواكه وخضروات", emoji: "🍊" },
+  { word: "عنب", category: "فواكه وخضروات", emoji: "🍇" },
+  { word: "أناناس", category: "فواكه وخضروات", emoji: "🍍" },
+  { word: "خوخ", category: "فواكه وخضروات", emoji: "🍑" },
+  { word: "كرز", category: "فواكه وخضروات", emoji: "🍒" },
+  { word: "ليمون", category: "فواكه وخضروات", emoji: "🍋" },
+  { word: "كيوي", category: "فواكه وخضروات", emoji: "🥝" },
+  { word: "رمان", category: "فواكه وخضروات", emoji: "🍅" },
+  { word: "طماطم", category: "فواكه وخضروات", emoji: "🍅" },
+  { word: "خيار", category: "فواكه وخضروات", emoji: "🥒" },
+  { word: "جزر", category: "فواكه وخضروات", emoji: "🥕" },
+  { word: "بطاطس", category: "فواكه وخضروات", emoji: "🥔" },
+  { word: "بصل", category: "فواكه وخضروات", emoji: "🧅" },
+  { word: "ثوم", category: "فواكه وخضروات", emoji: "🧄" },
+  { word: "باذنجان", category: "فواكه وخضروات", emoji: "🍆" },
+  { word: "فلفل", category: "فواكه وخضروات", emoji: "🫑" },
+  { word: "ذرة", category: "فواكه وخضروات", emoji: "🌽" },
+  { word: "خس", category: "فواكه وخضروات", emoji: "🥬" },
+  { word: "بروكلي", category: "فواكه وخضروات", emoji: "🥦" },
+  { word: "بازلاء", category: "فواكه وخضروات", emoji: "🫛" },
+
+  // أفلام ومسلسلات مصرية
+  { word: "الناظر", category: "أفلام ومسلسلات", emoji: "👨‍🏫" },
+  { word: "اللمبي", category: "أفلام ومسلسلات", emoji: "🤪" },
+  { word: "صعيدي في الجامعة الأمريكية", category: "أفلام ومسلسلات", emoji: "🤠" },
+  { word: "فول الصين العظيم", category: "أفلام ومسلسلات", emoji: "🇨🇳" },
+  { word: "غبي منه فيه", category: "أفلام ومسلسلات", emoji: "🤦‍♂️" },
+  { word: "الفيل الأزرق", category: "أفلام ومسلسلات", emoji: "🐘" },
+  { word: "لا تراجع ولا استسلام", category: "أفلام ومسلسلات", emoji: "❌" },
+  { word: "عسل أسود", category: "أفلام ومسلسلات", emoji: "🍯" },
+  { word: "طير إنت", category: "أفلام ومسلسلات", emoji: "🧞" },
+  { word: "كدا رضا", category: "أفلام ومسلسلات", emoji: "👥" },
+  { word: "إكس لارج", category: "أفلام ومسلسلات", emoji: "🍔" },
+  { word: "تيتة رهيبة", category: "أفلام ومسلسلات", emoji: "👵" },
+  { word: "الحرب العالمية الثالثة", category: "أفلام ومسلسلات", emoji: "🌍" },
+  { word: "أمير الظلام", category: "أفلام ومسلسلات", emoji: "🕶️" },
+  { word: "بوحة", category: "أفلام ومسلسلات", emoji: "🔪" },
+  { word: "جاءنا البيان التالي", category: "أفلام ومسلسلات", emoji: "🎤" },
+  { word: "مرجان أحمد مرجان", category: "أفلام ومسلسلات", emoji: "🎓" },
+  { word: "التجربة الدنماركية", category: "أفلام ومسلسلات", emoji: "🇩🇰" },
+  { word: "سمير وشهير وبهير", category: "أفلام ومسلسلات", emoji: "🕺" },
+
+  // أشياء وأجهزة بالمنزل
+  { word: "موبايل", category: "أشياء وأجهزة بالمنزل", emoji: "📱" },
+  { word: "لابتوب", category: "أشياء وأجهزة بالمنزل", emoji: "💻" },
+  { word: "تلفزيون", category: "أشياء وأجهزة بالمنزل", emoji: "📺" },
+  { word: "ثلاجة", category: "أشياء وأجهزة بالمنزل", emoji: "🧊" },
+  { word: "غسالة", category: "أشياء وأجهزة بالمنزل", emoji: "🧼" },
+  { word: "بوتاجاز", category: "أشياء وأجهزة بالمنزل", emoji: "🔥" },
+  { word: "مروحة", category: "أشياء وأجهزة بالمنزل", emoji: "🌀" },
+  { word: "تكييف", category: "أشياء وأجهزة بالمنزل", emoji: "❄️" },
+  { word: "ساعة حائط", category: "أشياء وأجهزة بالمنزل", emoji: "🕰️" },
+  { word: "مفتاح", category: "أشياء وأجهزة بالمنزل", emoji: "🔑" },
+  { word: "نظارة", category: "أشياء وأجهزة بالمنزل", emoji: "👓" },
+  { word: "قلم", category: "أشياء وأجهزة بالمنزل", emoji: "✏️" },
+  { word: "كتاب", category: "أشياء وأجهزة بالمنزل", emoji: "📖" },
+  { word: "سماعة", category: "أشياء وأجهزة بالمنزل", emoji: "🎧" },
+  { word: "شاحن", category: "أشياء وأجهزة بالمنزل", emoji: "🔌" },
+  { word: "مرآة", category: "أشياء وأجهزة بالمنزل", emoji: "🪞" },
+  { word: "سرير", category: "أشياء وأجهزة بالمنزل", emoji: "🛏️" },
+  { word: "كرسي", category: "أشياء وأجهزة بالمنزل", emoji: "🪑" },
+  { word: "طاولة", category: "أشياء وأجهزة بالمنزل", emoji: "🪵" },
+  { word: "سجادة", category: "أشياء وأجهزة بالمنزل", emoji: "🧶" },
+  { word: "فنجان قهوة", category: "أشياء وأجهزة بالمنزل", emoji: "☕" },
+  { word: "معجون أسنان", category: "أشياء وأجهزة بالمنزل", emoji: "🪥" },
+  { word: "فرشاة شعر", category: "أشياء وأجهزة بالمنزل", emoji: "🪮" },
+  { word: "مظلة", category: "أشياء وأجهزة بالمنزل", emoji: "☔" },
+  { word: "محفظة", category: "أشياء وأجهزة بالمنزل", emoji: "👛" },
+
+  // بلاد وعواصم
+  { word: "مصر", category: "بلاد وعواصم", emoji: "🇪🇬" },
+  { word: "السعودية", category: "بلاد وعواصم", emoji: "🇸🇦" },
+  { word: "فلسطين", category: "بلاد وعواصم", emoji: "🇵🇸" },
+  { word: "الإمارات", category: "بلاد وعواصم", emoji: "🇦🇪" },
+  { word: "فرنسا", category: "بلاد وعواصم", emoji: "🇫🇷" },
+  { word: "إيطاليا", category: "بلاد وعواصم", emoji: "🇮🇹" },
+  { word: "إسبانيا", category: "بلاد وعواصم", emoji: "🇪🇸" },
+  { word: "إنجلترا", category: "بلاد وعواصم", emoji: "🇬🇧" },
+  { word: "أمريكا", category: "بلاد وعواصم", emoji: "🇺🇸" },
+  { word: "اليابان", category: "بلاد وعواصم", emoji: "🇯🇵" },
+  { word: "الصين", category: "بلاد وعواصم", emoji: "🇨🇳" },
+  { word: "تركيا", category: "بلاد وعواصم", emoji: "🇹🇷" },
+  { word: "ألمانيا", category: "بلاد وعواصم", emoji: "🇩🇪" },
+  { word: "روسيا", category: "بلاد وعواصم", emoji: "🇷🇺" },
+  { word: "البرازيل", category: "بلاد وعواصم", emoji: "🇧🇷" },
+  { word: "القاهرة", category: "بلاد وعواصم", emoji: "🗼" },
+  { word: "مكة", category: "بلاد وعواصم", emoji: "🕋" },
+  { word: "القدس", category: "بلاد وعواصم", emoji: "🕌" },
+  { word: "باريس", category: "بلاد وعواصم", emoji: "🗼" },
+  { word: "روما", category: "بلاد وعواصم", emoji: "🏛️" },
+  { word: "لندن", category: "بلاد وعواصم", emoji: "🎡" },
+  { word: "طوكيو", category: "بلاد وعواصم", emoji: "🏯" },
+
+  // وسائل مواصلات
+  { word: "سيارة", category: "وسائل مواصلات", emoji: "🚗" },
+  { word: "طيارة", category: "وسائل مواصلات", emoji: "✈️" },
+  { word: "قطار", category: "وسائل مواصلات", emoji: "🚂" },
+  { word: "سفينة", category: "وسائل مواصلات", emoji: "🚢" },
+  { word: "دراجة عجلة", category: "وسائل مواصلات", emoji: "🚲" },
+  { word: "دراجة نارية", category: "وسائل مواصلات", emoji: "🏍️" },
+  { word: "مترو", category: "وسائل مواصلات", emoji: "🚇" },
+  { word: "أتوبيس", category: "وسائل مواصلات", emoji: "🚌" },
+  { word: "هليكوبتر", category: "وسائل مواصلات", emoji: "🚁" },
+  { word: "تاكسي", category: "وسائل مواصلات", emoji: "🚕" },
+  { word: "صاروخ", category: "وسائل مواصلات", emoji: "🚀" },
+  { word: "قارب", category: "وسائل مواصلات", emoji: "⛵" },
+  { word: "عربة إسعاف", category: "وسائل مواصلات", emoji: "🚑" },
+  { word: "مطافئ", category: "وسائل مواصلات", emoji: "🚒" },
+  { word: "شرطة", category: "وسائل مواصلات", emoji: "🚓" },
+
+  // وظائف ومهن
+  { word: "طبيب", category: "وظائف ومهن", emoji: "🩺" },
+  { word: "مهندس", category: "وظائف ومهن", emoji: "👷" },
+  { word: "معلم مدرس", category: "وظائف ومهن", emoji: "🧑‍🏫" },
+  { word: "طيار", category: "وظائف ومهن", emoji: "🧑‍✈️" },
+  { word: "ضابط شرطة", category: "وظائف ومهن", emoji: "👮" },
+  { word: "رجل إطفاء", category: "وظائف ومهن", emoji: "🧑‍🚒" },
+  { word: "قاضي", category: "وظائف ومهن", emoji: "⚖️" },
+  { word: "رسام", category: "وظائف ومهن", emoji: "🎨" },
+  { word: "مصور", category: "وظائف ومهن", emoji: "📷" },
+  { word: "طباخ", category: "وظائف ومهن", emoji: "🧑‍🍳" },
+  { word: "رائد فضاء", category: "وظائف ومهن", emoji: "🚀" },
+  { word: "خياط", category: "وظائف ومهن", emoji: "🪡" },
+  { word: "حلاق", category: "وظائف ومهن", emoji: "💈" },
+  { word: "صحفي", category: "وظائف ومهن", emoji: "🎤" },
+  { word: "عازف جيتار", category: "وظائف ومهن", emoji: "🎸" },
+  { word: "عالم", category: "وظائف ومهن", emoji: "🔬" },
+
+  // رومانسيات وهدايا
+  { word: "وردة", category: "رومانسيات وهدايا", emoji: "🌹" },
+  { word: "خاتم", category: "رومانسيات وهدايا", emoji: "💍" },
+  { word: "قلب", category: "رومانسيات وهدايا", emoji: "❤️" },
+  { word: "دبدوب", category: "رومانسيات وهدايا", emoji: "🧸" },
+  { word: "رسالة حب", category: "رومانسيات وهدايا", emoji: "💌" },
+  { word: "عطر", category: "رومانسيات وهدايا", emoji: "🧴" },
+  { word: "حضن", category: "رومانسيات وهدايا", emoji: "🤗" },
+  { word: "سينما سهرة", category: "رومانسيات وهدايا", emoji: "🎬" },
+  { word: "عشاء رومانسي", category: "رومانسيات وهدايا", emoji: "🕯️" },
+  { word: "بالون", category: "رومانسيات وهدايا", emoji: "🎈" },
+  { word: "موسيقى هادئة", category: "رومانسيات وهدايا", emoji: "🎶" },
+  { word: "غروب الشمس", category: "رومانسيات وهدايا", emoji: "🌇" },
+  { word: "سفر لشخصين", category: "رومانسيات وهدايا", emoji: "✈️" },
+  { word: "قبلة بوسة", category: "رومانسيات وهدايا", emoji: "💋" },
+  { word: "شوكولاتة الحب", category: "رومانسيات وهدايا", emoji: "🍫" }
+];
+
+function normalizeArabic(text) {
+  if (!text) return "";
+  let str = text.trim().toLowerCase();
+  if (str.startsWith("ال")) {
+    str = str.substring(2);
+  }
+  str = str.replace(/[أإآ]/g, "ا");
+  str = str.replace(/ة/g, "ه");
+  str = str.replace(/ى/g, "ي");
+  str = str.replace(/[\u064B-\u0652]/g, "");
+  str = str.replace(/\s+/g, "");
+  return str;
+}
 
 const CONFIG = {
   SUPABASE_URL: "",
@@ -185,7 +418,8 @@ const state = {
   currentSong: null,
   countersTimer: null,
   refreshTimer: null,
-  channels: []
+  channels: [],
+  guessWordSelectingCategory: false
 };
 
 const els = {
@@ -1089,11 +1323,189 @@ function renderEntertainment() {
 }
 
 function renderGamesContent() {
+  const isSelectingCategory = state.guessWordSelectingCategory || 
+    (state.activeGame && state.activeGame.id === "guess_word" && state.activeGame.isSelectingCategory);
+
+  if (isSelectingCategory) {
+    return `
+      <div class="section-head" style="justify-content: center; flex-direction: column; text-align: center; margin-bottom: 25px;">
+        <span class="tag hot" style="background: var(--gold); color: #000; font-size: 1rem; padding: 6px 16px; border-radius: 999px;">خمن الكلمة 🤫</span>
+        <h3 style="margin-top: 10px; color: var(--gold); font-size: 1.8rem;">اختر تصنيف الكلمات 🏷️</h3>
+        <p class="muted" style="margin-top: 5px;">اختاروا الفئة اللي حابين تلعبوا بيها وتخمنوا كلماتها شفهياً في الكول!</p>
+      </div>
+
+      <div class="grid three games-grid-mobile" style="padding-top: 10px; gap: 20px;">
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--blue); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="حيوانات وطيور">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🦁</span>
+          <h4 style="margin: 10px 0; color: var(--blue);">حيوانات وطيور</h4>
+          <span class="muted" style="font-size: 0.75rem;">أسود، نمر، طيور، كائنات مائية</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--gold); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="طعام وحلويات">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🍕</span>
+          <h4 style="margin: 10px 0; color: var(--gold);">طعام وحلويات</h4>
+          <span class="muted" style="font-size: 0.75rem;">بيتزا، برجر، حلويات شرقية وغربية</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--pink); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="فواكه وخضروات">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🍓</span>
+          <h4 style="margin: 10px 0; color: var(--pink);">فواكه وخضروات</h4>
+          <span class="muted" style="font-size: 0.75rem;">فواكه منعشة وخضار طازج</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--danger); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="أفلام ومسلسلات">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🎬</span>
+          <h4 style="margin: 10px 0; color: var(--danger);">أفلام ومسلسلات مصرية</h4>
+          <span class="muted" style="font-size: 0.75rem;">أشهر الأفلام والمسلسلات الكوميدية والدرامية المصرية</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--purple); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="أشياء وأجهزة بالمنزل">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🏠</span>
+          <h4 style="margin: 10px 0; color: var(--purple);">أجهزة وأشياء بالمنزل</h4>
+          <span class="muted" style="font-size: 0.75rem;">أثاث وأدوات وأجهزة منزلية</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--green); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="بلاد وعواصم">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🌍</span>
+          <h4 style="margin: 10px 0; color: var(--green);">بلاد وعواصم</h4>
+          <span class="muted" style="font-size: 0.75rem;">دول عربية وأجنبية وعواصم مشهورة</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--blue); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="وسائل مواصلات">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">✈️</span>
+          <h4 style="margin: 10px 0; color: var(--blue);">وسائل مواصلات</h4>
+          <span class="muted" style="font-size: 0.75rem;">مركبات في الجو والبحر والبر</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--gold); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="وظائف ومهن">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">💼</span>
+          <h4 style="margin: 10px 0; color: var(--gold);">وظائف ومهن</h4>
+          <span class="muted" style="font-size: 0.75rem;">أشخاص نعمل معهم ونقابلهم</span>
+        </button>
+
+        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--pink); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="رومانسيات وهدايا">
+          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">💖</span>
+          <h4 style="margin: 10px 0; color: var(--pink);">رومانسيات وهدايا</h4>
+          <span class="muted" style="font-size: 0.75rem;">تفاصيل حبنا وهدايا وذكريات</span>
+        </button>
+      </div>
+
+      <div style="text-align: center; margin-top: 30px; display: flex; gap: 15px; justify-content: center;">
+        <button class="primary-btn" type="button" data-action="guess-word-select-category" data-category="all" style="font-size: 1.1rem; padding: 12px 28px;">
+          <i data-lucide="dices"></i> عام / عشوائي 🎲
+        </button>
+        <button class="secondary-btn" type="button" data-action="guess-word-cancel-select" style="font-size: 1.1rem; padding: 12px 28px;">
+          إلغاء ❌
+        </button>
+      </div>
+    `;
+  }
+
   if (state.activeGame) {
     const game = state.activeGame;
+    
+    if (game.id === "guess_word") {
+      const isPlayer1 = state.user.id === game.player1Id;
+      const partnerName = isPlayer1 ? game.player2Name : game.player1Name;
+      const mySecretWord = isPlayer1 ? game.word1 : game.word2;
+      const myEmoji = isPlayer1 ? game.emoji1 : game.emoji2;
+      const myCategory = isPlayer1 ? game.category1 : game.category2;
+
+      // Winner view
+      if (game.winnerId) {
+        return `
+          <section class="surface" style="text-align: center; padding: 40px 20px; border: 2px dashed var(--gold); border-radius: 24px; background: rgba(20, 10, 40, 0.85); box-shadow: 0 0 40px rgba(251, 191, 36, 0.3);">
+            <div style="font-size: 5rem; margin-bottom: 20px;">🏆🎉🏆</div>
+            <h2 style="color: var(--gold); font-size: 2.2rem; margin-bottom: 10px; text-shadow: 0 0 20px rgba(251,191,36,0.6);">الفائز: ${escapeHTML(game.winnerName)}!</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 30px; color: var(--text);">خمن كلمة شريكه بنجاح! 👏</p>
+            
+            <div class="grid two" style="max-width: 500px; margin: 0 auto 30px; gap: 20px;">
+              <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--border);">
+                <p class="muted" style="margin: 0 0 5px; font-size: 0.9rem;">كلمة محمود</p>
+                <strong style="color: var(--blue); font-size: 1.5rem; display: block; margin-top: 5px;">${escapeHTML(game.emoji1)} ${escapeHTML(game.word1)}</strong>
+                <span style="font-size: 0.8rem; display: block; color: var(--muted); margin-top: 4px;">(${escapeHTML(game.category1)})</span>
+              </div>
+              <div style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid var(--border);">
+                <p class="muted" style="margin: 0 0 5px; font-size: 0.9rem;">كلمة مريم</p>
+                <strong style="color: var(--pink); font-size: 1.5rem; display: block; margin-top: 5px;">${escapeHTML(game.emoji2)} ${escapeHTML(game.word2)}</strong>
+                <span style="font-size: 0.8rem; display: block; color: var(--muted); margin-top: 4px;">(${escapeHTML(game.category2)})</span>
+              </div>
+            </div>
+            
+            <div class="actions" style="justify-content: center; gap: 15px;">
+              <button class="primary-btn" type="button" data-action="guess-word-restart" style="font-size: 1.1rem; padding: 12px 24px;">
+                <i data-lucide="rotate-ccw"></i> الدور التالي 🔄
+              </button>
+              <button class="secondary-btn" type="button" data-action="guess-word-back-to-categories" style="font-size: 1.1rem; padding: 12px 24px; border: 1px solid var(--gold); color: var(--gold);">
+                <i data-lucide="arrow-left"></i> تغيير القسم 🏷️
+              </button>
+              <button class="secondary-btn" type="button" data-action="end-game" style="font-size: 1.1rem; padding: 12px 24px;">
+                <i data-lucide="x"></i> نقفل اللعبة
+              </button>
+            </div>
+          </section>
+          <script>
+            (function() {
+              const layer = document.getElementById("heartsLayer");
+              if (!layer) return;
+              for (let i = 0; i < 20; i++) {
+                const heart = document.createElement("span");
+                heart.className = "heart-float";
+                heart.textContent = i % 2 === 0 ? "🎉" : "❤️";
+                heart.style.left = Math.random() * 100 + "%";
+                heart.style.animationDuration = (2 + Math.random() * 3) + "s";
+                heart.style.fontSize = (20 + Math.random() * 20) + "px";
+                layer.appendChild(heart);
+                setTimeout(() => heart.remove(), 4000);
+              }
+            })();
+          </script>
+        `;
+      }
+
+      // Active game view
+      return `
+        <div class="section-head" style="justify-content: center; flex-direction: column; text-align: center; margin-bottom: 25px;">
+          <span class="tag hot" style="background: var(--gold); color: #000; font-size: 1rem; padding: 6px 16px; border-radius: 999px;">خمن الكلمة 🤫</span>
+          <h3 style="margin-top: 10px; color: var(--gold); font-size: 1.8rem;">اسألوا بعض في الكول!</h3>
+          <p class="muted" style="margin-top: 5px;">التصنيف الحالي: <strong style="color: var(--gold);">${escapeHTML(game.categorySelected || 'عام')}</strong></p>
+          <p class="muted" style="margin-top: 5px;">كل واحد يسأل التاني سؤال شفهياً في الكول، وأول واحد يخمن كلمة شريكه يدوس "خمنت صح!"</p>
+        </div>
+
+        <div style="max-width: 600px; margin: 0 auto;">
+          <div class="surface" style="padding: 35px 25px; border: 2px solid var(--border); border-radius: 24px; background: rgba(15,23,42,0.7); text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.3); position: relative; overflow: hidden; margin-bottom: 25px;">
+            <div style="position: absolute; top: 0; right: 0; width: 100px; height: 100px; background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 70%); pointer-events: none;"></div>
+            
+            <h4 style="margin: 0 0 15px; color: var(--blue); font-size: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
+              كلمتك السرية (ممنوع شريكك يشوفها)
+            </h4>
+            
+            <div style="font-size: 5rem; line-height: 1.2; margin: 15px 0;">${escapeHTML(myEmoji)}</div>
+            <strong style="font-size: 3rem; color: #fff; text-shadow: 0 0 20px rgba(56, 189, 248, 0.7); display: block; margin-bottom: 10px; letter-spacing: 1px;">${escapeHTML(mySecretWord)}</strong>
+            <span class="tag" style="background: rgba(56, 189, 248, 0.15); color: var(--blue); border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.95rem; padding: 6px 14px;">تصنيف: ${escapeHTML(myCategory)}</span>
+          </div>
+
+          <div style="text-align: center; margin-bottom: 30px;">
+            <button class="primary-btn" type="button" data-action="guess-word-correct" style="font-size: 1.3rem; padding: 16px 36px; border-radius: 16px; background: linear-gradient(135deg, var(--gold), #d4af37); color: #000; font-weight: bold; border: none; box-shadow: 0 0 25px rgba(251, 191, 36, 0.4); transition: 0.3s; width: 100%; max-width: 400px; margin: 0 auto;">
+              <i data-lucide="trophy" style="width: 24px; height: 24px; margin-left: 8px;"></i> خمنت صح! 🎉
+            </button>
+          </div>
+
+          <div class="actions" style="justify-content: center; gap: 15px;">
+            <button class="secondary-btn" type="button" data-action="guess-word-back-to-categories" style="padding: 10px 20px; border: 1px solid var(--gold); color: var(--gold);">
+              <i data-lucide="arrow-left"></i> تغيير القسم 🏷️
+            </button>
+            <button class="secondary-btn game-over-btn" type="button" data-action="end-game" style="padding: 10px 20px;">
+              <i data-lucide="x"></i> نقفل اللعبة
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
     const amIAsker = game.asker === state.user.id;
     const amIAnswerer = game.answerer === state.user.id;
-
 
     let gameName = "لعبة";
     if (game.id === "meen") gameName = "مين فين؟ 🤷‍♂️🤷‍♀️";
@@ -1135,6 +1547,15 @@ function renderGamesContent() {
 
   return `
       <div class="grid three games-grid-mobile" style="padding-top: 10px;">
+        <button class="surface memory-card" style="text-align:center; padding: 30px 20px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 250px; background: rgba(15,23,42,0.8); border: 1px solid var(--gold); box-shadow: 0 0 30px rgba(251, 191, 36, 0.15), inset 0 0 20px rgba(251, 191, 36, 0.05); border-radius: 24px;" type="button" data-action="start-game" data-id="guess_word">
+          <div>
+            <span style="font-size: 3.5rem; display: block; margin-bottom: 10px; text-shadow: 0 0 20px rgba(251,191,36,0.5);">🤫</span>
+            <h3 style="margin: 15px 0; color: var(--gold);">خمن الكلمة</h3>
+            <p class="muted" style="font-size: 0.8rem;">كل واحد معاه كلمة سرية للآخر، خمنها عن طريق الأسئلة!</p>
+          </div>
+          <div style="padding: 10px 20px; border-radius: 12px; background: linear-gradient(135deg, rgba(251,191,36,0.2), transparent); border: 1px solid var(--gold); color: var(--gold); font-weight: bold; width: 100%; margin-top: 20px;">ابدأ اللعبة</div>
+        </button>
+
         <button class="surface memory-card" style="text-align:center; padding: 30px 20px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 250px; background: rgba(15,23,42,0.8); border: 1px solid var(--blue); box-shadow: 0 0 30px rgba(56, 189, 248, 0.15), inset 0 0 20px rgba(56, 189, 248, 0.05); border-radius: 24px;" type="button" data-action="start-game" data-id="meen">
           <div>
             <span style="font-size: 3.5rem; display: block; margin-bottom: 10px; text-shadow: 0 0 20px rgba(56,189,248,0.5);">❓</span>
@@ -1893,6 +2314,25 @@ async function handleActionClick(event) {
   if (action === "open-profile-form") openProfileForm();
   if (action === "start-game") startGame(id);
   if (action === "next-game-turn") nextGameTurn();
+  if (action === "guess-word-correct") {
+    guessWordCorrect();
+  }
+  if (action === "guess-word-restart") {
+    guessWordRestart();
+  }
+  if (action === "guess-word-back-to-categories") {
+    guessWordBackToCategories();
+  }
+  if (action === "guess-word-select-category") {
+    const category = button.dataset.category;
+    startGame("guess_word", category);
+  }
+  if (action === "guess-word-cancel-select") {
+    state.guessWordSelectingCategory = false;
+    state.activeGame = null;
+    broadcastGameState();
+    renderView("entertainment");
+  }
 
   if (action === "edit-message") await editChatMessage(id);
   if (action === "open-chat-settings") openChatSettings();
@@ -2074,6 +2514,7 @@ async function handleSubmit(event) {
       input.focus();
     }
   }
+
   if (form.id === "editMessageForm") {
     event.preventDefault();
     await submitEditMessage(form);
@@ -3339,7 +3780,7 @@ async function setupRealtime() {
     })
     .on("broadcast", { event: "game-sync" }, ({ payload }) => {
       state.activeGame = payload;
-      if (state.view === "games") renderView("games");
+      if (state.view === "entertainment") renderView("entertainment");
     })
     .on("broadcast", { event: "profile-sync" }, ({ payload }) => {
       const idx = state.profiles.findIndex(p => p.id === payload.id);
@@ -3873,12 +4314,7 @@ function updateChatViewportHeight() {
     if (wrapper) {
       wrapper.style.height = `${chatInitialHeight}px`;
     }
-    
-    // Jump list to bottom instantly
-    const list = document.getElementById("messagesList");
-    if (list) {
-      list.scrollTop = list.scrollHeight;
-    }
+
   }
 }
 
@@ -4292,28 +4728,79 @@ function getGamePool(gameId) {
   return MEEN_QUESTIONS;
 }
 
-function startGame(gameId) {
+function startGame(gameId, category) {
   const other = state.profiles.find(p => p.id !== state.user.id) || state.user;
 
-  const pool = getGamePool(gameId);
-  const question = pool[Math.floor(Math.random() * pool.length)];
-  state.activeGame = {
-    id: gameId,
-    question: question,
-    asker: state.user.id,
-    askerName: state.profile.name,
-    answerer: other.id,
-    answererName: other.name
-  };
+  if (gameId === "guess_word") {
+    if (!category) {
+      state.guessWordSelectingCategory = true;
+      state.activeGame = {
+        id: "guess_word",
+        isSelectingCategory: true
+      };
+      broadcastGameState();
+      renderView("entertainment");
+      return;
+    }
+
+    let pool = WORD_GUESS_POOL;
+    if (category !== "all") {
+      pool = WORD_GUESS_POOL.filter(w => w.category === category);
+    }
+    if (!pool.length) pool = WORD_GUESS_POOL;
+
+    const w1 = pool[Math.floor(Math.random() * pool.length)];
+    let w2 = pool[Math.floor(Math.random() * pool.length)];
+    while (w2.word === w1.word && pool.length > 1) {
+      w2 = pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    state.activeGame = {
+      id: "guess_word",
+      categoryKey: category,
+      categorySelected: category === "all" ? "عام / عشوائي" : category,
+      player1Id: state.user.id,
+      player1Name: state.profile.display_name || state.profile.name,
+      player2Id: other.id,
+      player2Name: other.display_name || other.name,
+      word1: w1.word,
+      emoji1: w1.emoji,
+      category1: w1.category,
+      word2: w2.word,
+      emoji2: w2.emoji,
+      category2: w2.category,
+      winnerId: null,
+      winnerName: null
+    };
+
+    state.guessWordSelectingCategory = false;
+  } else {
+    const pool = getGamePool(gameId);
+    const question = pool[Math.floor(Math.random() * pool.length)];
+    state.activeGame = {
+      id: gameId,
+      question: question,
+      asker: state.user.id,
+      askerName: state.profile.name,
+      answerer: other.id,
+      answererName: other.name
+    };
+  }
 
   broadcastGameState();
-  renderView("games");
+  renderView("entertainment");
 }
 
 
 function nextGameTurn() {
   if (!state.activeGame) return;
   const gameId = state.activeGame.id;
+  
+  if (gameId === "guess_word") {
+    startGame("guess_word");
+    return;
+  }
+
   const pool = getGamePool(gameId);
   const question = pool[Math.floor(Math.random() * pool.length)];
 
@@ -4333,13 +4820,42 @@ function nextGameTurn() {
   };
 
   broadcastGameState();
-  renderView("games");
+  renderView("entertainment");
 }
 
 function endGame() {
   state.activeGame = null;
   broadcastGameState();
-  renderView("games");
+  renderView("entertainment");
+}
+
+function guessWordCorrect() {
+  if (!state.activeGame || state.activeGame.id !== "guess_word" || state.activeGame.winnerId) return;
+  
+  const game = state.activeGame;
+  game.winnerId = state.user.id;
+  game.winnerName = state.profile.display_name || state.profile.name;
+  
+  broadcastGameState();
+  renderView("entertainment");
+}
+
+function guessWordRestart() {
+  let categoryKey = "all";
+  if (state.activeGame && state.activeGame.id === "guess_word") {
+    categoryKey = state.activeGame.categoryKey || "all";
+  }
+  startGame("guess_word", categoryKey);
+}
+
+function guessWordBackToCategories() {
+  state.guessWordSelectingCategory = true;
+  state.activeGame = {
+    id: "guess_word",
+    isSelectingCategory: true
+  };
+  broadcastGameState();
+  renderView("entertainment");
 }
 
 function broadcastGameState() {
