@@ -1334,59 +1334,59 @@ function renderGamesContent() {
         <p class="muted" style="margin-top: 5px;">اختاروا الفئة اللي حابين تلعبوا بيها وتخمنوا كلماتها شفهياً في الكول!</p>
       </div>
 
-      <div class="grid three games-grid-mobile" style="padding-top: 10px; gap: 20px;">
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--blue); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="حيوانات وطيور">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🦁</span>
-          <h4 style="margin: 10px 0; color: var(--blue);">حيوانات وطيور</h4>
-          <span class="muted" style="font-size: 0.75rem;">أسود، نمر، طيور، كائنات مائية</span>
+      <div class="guess-categories-grid">
+        <button class="category-card" style="border: 1px solid var(--blue);" type="button" data-action="guess-word-select-category" data-category="حيوانات وطيور">
+          <span class="cat-emoji">🦁</span>
+          <h4 style="color: var(--blue);">حيوانات وطيور</h4>
+          <span class="cat-desc">أسود، نمر، طيور، كائنات مائية</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--gold); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="طعام وحلويات">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🍕</span>
-          <h4 style="margin: 10px 0; color: var(--gold);">طعام وحلويات</h4>
-          <span class="muted" style="font-size: 0.75rem;">بيتزا، برجر، حلويات شرقية وغربية</span>
+        <button class="category-card" style="border: 1px solid var(--gold);" type="button" data-action="guess-word-select-category" data-category="طعام وحلويات">
+          <span class="cat-emoji">🍕</span>
+          <h4 style="color: var(--gold);">طعام وحلويات</h4>
+          <span class="cat-desc">بيتزا، برجر، حلويات شرقية وغربية</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--pink); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="فواكه وخضروات">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🍓</span>
-          <h4 style="margin: 10px 0; color: var(--pink);">فواكه وخضروات</h4>
-          <span class="muted" style="font-size: 0.75rem;">فواكه منعشة وخضار طازج</span>
+        <button class="category-card" style="border: 1px solid var(--pink);" type="button" data-action="guess-word-select-category" data-category="فواكه وخضروات">
+          <span class="cat-emoji">🍓</span>
+          <h4 style="color: var(--pink);">فواكه وخضروات</h4>
+          <span class="cat-desc">فواكه منعشة وخضار طازج</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--danger); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="أفلام ومسلسلات">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🎬</span>
-          <h4 style="margin: 10px 0; color: var(--danger);">أفلام ومسلسلات مصرية</h4>
-          <span class="muted" style="font-size: 0.75rem;">أشهر الأفلام والمسلسلات الكوميدية والدرامية المصرية</span>
+        <button class="category-card" style="border: 1px solid var(--danger);" type="button" data-action="guess-word-select-category" data-category="أفلام ومسلسلات">
+          <span class="cat-emoji">🎬</span>
+          <h4 style="color: var(--danger);">أفلام ومسلسلات مصرية</h4>
+          <span class="cat-desc">أشهر الأفلام والمسلسلات الكوميدية والدرامية المصرية</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--purple); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="أشياء وأجهزة بالمنزل">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🏠</span>
-          <h4 style="margin: 10px 0; color: var(--purple);">أجهزة وأشياء بالمنزل</h4>
-          <span class="muted" style="font-size: 0.75rem;">أثاث وأدوات وأجهزة منزلية</span>
+        <button class="category-card" style="border: 1px solid var(--purple);" type="button" data-action="guess-word-select-category" data-category="أشياء وأجهزة بالمنزل">
+          <span class="cat-emoji">🏠</span>
+          <h4 style="color: var(--purple);">أجهزة وأشياء بالمنزل</h4>
+          <span class="cat-desc">أثاث وأدوات وأجهزة منزلية</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--green); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="بلاد وعواصم">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">🌍</span>
-          <h4 style="margin: 10px 0; color: var(--green);">بلاد وعواصم</h4>
-          <span class="muted" style="font-size: 0.75rem;">دول عربية وأجنبية وعواصم مشهورة</span>
+        <button class="category-card" style="border: 1px solid var(--green);" type="button" data-action="guess-word-select-category" data-category="بلاد وعواصم">
+          <span class="cat-emoji">🌍</span>
+          <h4 style="color: var(--green);">بلاد وعواصم</h4>
+          <span class="cat-desc">دول عربية وأجنبية وعواصم مشهورة</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--blue); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="وسائل مواصلات">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">✈️</span>
-          <h4 style="margin: 10px 0; color: var(--blue);">وسائل مواصلات</h4>
-          <span class="muted" style="font-size: 0.75rem;">مركبات في الجو والبحر والبر</span>
+        <button class="category-card" style="border: 1px solid var(--blue);" type="button" data-action="guess-word-select-category" data-category="وسائل مواصلات">
+          <span class="cat-emoji">✈️</span>
+          <h4 style="color: var(--blue);">وسائل مواصلات</h4>
+          <span class="cat-desc">مركبات في الجو والبحر والبر</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--gold); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="وظائف ومهن">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">💼</span>
-          <h4 style="margin: 10px 0; color: var(--gold);">وظائف ومهن</h4>
-          <span class="muted" style="font-size: 0.75rem;">أشخاص نعمل معهم ونقابلهم</span>
+        <button class="category-card" style="border: 1px solid var(--gold);" type="button" data-action="guess-word-select-category" data-category="وظائف ومهن">
+          <span class="cat-emoji">💼</span>
+          <h4 style="color: var(--gold);">وظائف ومهن</h4>
+          <span class="cat-desc">أشخاص نعمل معهم ونقابلهم</span>
         </button>
 
-        <button class="surface memory-card" style="text-align:center; padding: 25px 15px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; background: rgba(15,23,42,0.8); border: 1px solid var(--pink); border-radius: 20px;" type="button" data-action="guess-word-select-category" data-category="رومانسيات وهدايا">
-          <span style="font-size: 3rem; display: block; margin-bottom: 10px;">💖</span>
-          <h4 style="margin: 10px 0; color: var(--pink);">رومانسيات وهدايا</h4>
-          <span class="muted" style="font-size: 0.75rem;">تفاصيل حبنا وهدايا وذكريات</span>
+        <button class="category-card" style="border: 1px solid var(--pink);" type="button" data-action="guess-word-select-category" data-category="رومانسيات وهدايا">
+          <span class="cat-emoji">💖</span>
+          <h4 style="color: var(--pink);">رومانسيات وهدايا</h4>
+          <span class="cat-desc">تفاصيل حبنا وهدايا وذكريات</span>
         </button>
       </div>
 
@@ -1686,7 +1686,7 @@ function renderChat() {
               <div class="attachment-icon-wrapper photos-videos">
                 <i data-lucide="image"></i>
               </div>
-              <span>الصور والفيديوهات</span>
+              <span>المعرض</span>
             </button>
             <button type="button" class="attachment-item" data-action="attachment-camera">
               <div class="attachment-icon-wrapper camera">
